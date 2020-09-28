@@ -1,0 +1,9 @@
+{
+    "type": "zmq_tcp",
+    "zmq_pub_nodrop": true,
+    "zmq_send_hwm": 100,
+    "zmq_tcp_publish": {
+        "host": "127.0.0.1",
+        "port": 5568
+    }
+}

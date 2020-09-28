@@ -1,0 +1,24 @@
+{
+    "config": {},
+    "interfaces": {
+        "Subscribers": [
+            {
+                "Name": "frontend",
+                "Type": "zmq_tcp",
+                "EndPoint": "127.0.0.1:8765",
+                "Topics": ["frontend"],
+                "AllowedClients": ["*"]
+            }
+        ],
+        "Publishers": [
+            {
+                "Name": "backend",
+                "Type": "zmq_tcp",
+                "EndPoint": "127.0.0.1:8675",
+                "Topics": ["backend"],
+                "AllowedClients": ["*"],
+                "zmq_send_hwm": 100
+            }
+        ]
+    }
+}

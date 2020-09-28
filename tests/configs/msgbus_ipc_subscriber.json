@@ -1,0 +1,7 @@
+{
+    "type": "zmq_ipc",
+    "socket_dir": "./.socks",
+    "broker-tests-topic": {
+        "socket_file": "backend-sock"
+    }
+}
