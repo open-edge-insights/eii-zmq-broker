@@ -1,0 +1,8 @@
+{
+    "type": "zmq_tcp",
+    "zmq_recv_hwm": 100,
+    "frontend": {
+        "host": "127.0.0.1",
+        "port": 5569
+    }
+}
