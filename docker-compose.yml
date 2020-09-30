@@ -43,6 +43,7 @@ services:
     user: ${EIS_UID}
     environment:
       AppName: "EISZmqBroker"
+      CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${eis_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
