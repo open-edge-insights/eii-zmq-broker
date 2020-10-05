@@ -68,6 +68,42 @@ const char* get_event_str(int event);
  */
 int get_monitor_event(void* monitor, bool block);
 
+/**
+ * Return string name for the given Linux scheduler policy.
+ *
+ * @param sched_policy - Scheduler policy
+ * @return const char*
+ */
+const char* sched_policy_desc(int sched_policy);
+
+/**
+ * Parse the given log level string.
+ *
+ * \note The string must be one of the following: DEBUG, INFO, WARN, ERROR
+ *
+ * @param[in]  log_lvl_str - Log level string to parse
+ * @param[out] log_lvl     - Output log level
+ * @return True if successfully parse, False if not. Errors will be logged
+ *  in the method accordingly.
+ */
+bool parse_log_level(const char* log_lvl_str, log_lvl_t* log_lvl);
+
+/**
+ * Parse the given Linux scheduler policy into it's corresponding integer
+ * value.
+ *
+ * \note The string must be one of the following: SCHED_OTHER, SCHED_IDLE,
+ *      SCHED_BATCH, SCHED_FIFO, SCHED_RR. See this Linux man page for more
+ *      information:
+ *      https://man7.org/linux/man-pages/man7/sched.7.html for more details
+ *
+ * @param[in]  sched_policy_str - Schedule policy name
+ * @param[out] sched_policy     - Outputted integer value
+ * @return True if successfully parsed, otherwise False. Errors will be logged
+ *  in the method accordingly.
+ */
+bool parse_sched_policy(const char* sched_policy_str, int* sched_policy);
+
 #ifdef __cplusplus
 }  // __cplusplus
 #endif

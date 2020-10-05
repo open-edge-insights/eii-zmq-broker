@@ -1,6 +1,6 @@
 {
     "type": "zmq_tcp",
-    "AllowedClients": ["y-G]27SC}{!mC4(]}=c=KH1M{x)Kd/{i%o]j7YT3"],
+    "allowed_clients": ["y-G]27SC}{!mC4(]}=c=KH1M{x)Kd/{i%o]j7YT3"],
     "zmq_tcp_publish": {
         "host": "127.0.0.1",
         "port": 5568,

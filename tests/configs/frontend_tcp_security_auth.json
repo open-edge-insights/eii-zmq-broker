@@ -1,6 +1,6 @@
 {
     "type": "zmq_tcp",
-    "AllowedClients": ["4J4?(I13cwJgqi+T5nxg:Dyr5)l&reK]cxxTfa9V"],
+    "allowed_clients": ["4J4?(I13cwJgqi+T5nxg:Dyr5)l&reK]cxxTfa9V"],
     "frontend": {
         "host": "127.0.0.1",
         "port": 5569,

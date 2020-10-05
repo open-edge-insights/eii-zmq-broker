@@ -48,14 +48,28 @@ class Broker {
     // ZAP context
     zap_ctx_t* m_zap_ctx;
 
+    // Broker thread scheduling policy
+    int m_sched_policy;
+
+    // Broker thread scheduler priority (depends on the scheduling policy)
+    int m_sched_priority;
+
  public:
     /**
      * Constructor
      *
+     * \note sched_policy and sched_priority must be values as defined in the
+     *  SCHED section of the Linux Programmer's Manual (see
+     *  https://man7.org/linux/man-pages/man7/sched.7.html for more details).
+     *
      * @param frontend_config - Frontend XSUB socket configuration
      * @param backend_config  - Backend XPUB socket configuration
+     * @param sched_policy - Broker thread linux scheduler policy
+     * @param sched_priority - Broker thread Linux scheduler priority
+     *  (dependent on sched_policy to be valid)
      */
-    Broker(config_t* frontend_config, config_t* backend_config);
+    Broker(config_t* frontend_config, config_t* backend_config,
+           int sched_policy=-1, int sched_priority=-1);
 
     /**
      * Destructor
