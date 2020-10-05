@@ -35,7 +35,7 @@
 // Defines
 #define ZAP_URI       "inproc://zeromq.zap.01"
 #define ZAP_CURVE     "CURVE"
-#define ZAP_ALLOWED_CLIENTS "AllowedClients"
+#define ZAP_ALLOWED_CLIENTS "allowed_clients"
 
 // Macro to make receiving ZAP frames simpler
 #define ZAP_RECV(dest) { \

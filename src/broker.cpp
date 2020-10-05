@@ -26,16 +26,18 @@
 #include <zmq.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <eis/utils/logger.h>
 #include <vector>
 #include <cassert>
 #include <string>
+#include <sstream>
 #include <cstring>
 #include "eis/zmqbroker/common.h"
 #include "eis/zmqbroker/broker.h"
 
 // Defines
-#define CVT_ALLOWED_CLIENTS "AllowedClients"
+#define CVT_ALLOWED_CLIENTS "allowed_clients"
 
 namespace eis {
 namespace zmqbroker {
@@ -47,8 +49,10 @@ static config_value_t* vec_get_config_value(const void* o, const char* key);
 static config_value_t* vec_get_array_item(const void* array, int idx);
 static void vec_free(void* varp);
 
-Broker::Broker(config_t* frontend_config, config_t* backend_config) :
-    m_zmq_ctx(NULL), m_frontend(NULL), m_backend(NULL), m_zap_ctx(NULL) {
+Broker::Broker(config_t* frontend_config, config_t* backend_config,
+               int sched_policy, int sched_priority) :
+    m_zmq_ctx(NULL), m_frontend(NULL), m_backend(NULL), m_zap_ctx(NULL),
+    m_sched_policy(sched_policy), m_sched_priority(sched_priority) {
     try {
         // Initialize ZeroMQ context
         m_zmq_ctx = zmq_ctx_new();
@@ -157,11 +161,86 @@ int Broker::run_forever() {
     void* frontend = m_frontend->get_socket();
     void* backend = m_backend->get_socket();
 
+    // If the SHED policy or priority are set, apply them to the thread which
+    // the Broker::run_forever() method was called from.
+    if (m_sched_policy != -1) {
+        int sched_priority = m_sched_priority;
+
+        // If the scheduler policy is FIFO or Round Robin, i.e. a policy which
+        // allows the priority to be set, then check if it was provided in the
+        // initialization of the broker. If it was not, and is therefore set to
+        // -1, default to the lowest priority, 1.
+        if ((m_sched_policy == SCHED_FIFO || m_sched_policy == SCHED_RR)
+                && m_sched_priority == -1) {
+            LOG_WARN("Using scheduler policy \"%s\" without setting the "
+                     "priority, defaulting to lowest priority",
+                     sched_policy_desc(m_sched_policy));
+            sched_priority = 1;
+        } else if (m_sched_policy != SCHED_FIFO &&
+                    m_sched_policy != SCHED_RR) {
+            // Else, the policy is one of the other scheduler policies, such as
+            // SCHED_OTHER or SCHED_BATCH, and the priority must be 0.
+            if (m_sched_priority > 0) {
+                LOG_WARN("Provided scheduler priority \"%d\" ignored due to "
+                         "incompatible policy \"%s\"",
+                         m_sched_priority, sched_policy_desc(m_sched_policy));
+            }
+            sched_priority = 0;
+        }
+
+        // Get handle to the thread from which the run_forever() method was
+        // called
+        pthread_t self = pthread_self();
+
+        // Construct structure for scheduler parameters
+        struct sched_param params = { .sched_priority = sched_priority };
+
+        LOG_INFO("Setting thread policy to \"%s\" with priority \"%d\"",
+                 sched_policy_desc(m_sched_policy), sched_priority);
+
+        // Attempt to set the Linux scheduler parameters for the broker thread
+        rc = pthread_setschedparam(self, m_sched_policy, &params);
+        if (rc < 0) {
+            std::ostringstream os;
+            os << "(rc: " << rc << ") Failed to set thread scheduler policy "
+               << "to" << "\"" << sched_policy_desc(m_sched_policy) << "\""
+               << " with priority \"" << sched_priority << "\": ";
+
+            switch (rc) {
+                case ESRCH:
+                    os << "Invalid thread ID";
+                    break;
+                case EINVAL:
+                    os << "Unrecognized policy";
+                    break;
+                case EPERM:
+                    os << "Permission denied";
+                    break;
+                case ENOTSUP:
+                    os << "Unsupported policy/scheduling parameters";
+                    break;
+                default:
+                    os << "Unknown error";
+                    break;
+            }
+
+            std::string err_str = os.str();
+            const char* err = err_str.c_str();
+            LOG_ERROR("%s", err);
+            throw err;
+        }
+    }
+
     LOG_DEBUG_0("Started running forever");
     rc = zmq_proxy(frontend, backend, NULL);
     LOG_DEBUG("Proxy stopped, rc = %d", rc);
-    if (rc != 0)
-        LOG_ZMQ_ERROR("Proxy function encountered an error");
+    if (rc != 0) {
+        if (zmq_errno() == EINTR) {
+            LOG_WARN_0("Broker received a system interrupt");
+        } else {
+            LOG_ZMQ_ERROR("Proxy function encountered an error");
+        }
+    }
 
     return rc;
 }

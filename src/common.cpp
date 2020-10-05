@@ -25,6 +25,7 @@
 #include "eis/zmqbroker/common.h"
 #include <safe_lib.h>
 #include <zmq.h>
+#include <pthread.h>
 
 // Implementation of C utilities
 
@@ -87,7 +88,6 @@ int get_monitor_event(void* monitor, bool block) {
     }
 
     // Get the event which occurred
-    // uint16_t event = *(uint16_t*)((uint8_t*) zmq_msg_data(&msg));
     uint16_t event = *reinterpret_cast<uint16_t*>(
             reinterpret_cast<uint8_t*>(zmq_msg_data(&msg)));
     zmq_msg_close(&msg);
@@ -101,4 +101,58 @@ int get_monitor_event(void* monitor, bool block) {
     zmq_msg_close(&msg);
 
     return event;
+}
+
+const char* sched_policy_desc(int sched_policy) {
+    switch (sched_policy) {
+        case SCHED_OTHER: return "SCHED_OTHER";
+        case SCHED_IDLE:  return "SCHED_IDLE";
+        case SCHED_BATCH: return "SCHED_BATCH";
+        case SCHED_FIFO:  return "SCHED_FIFO";
+        case SCHED_RR:    return "SCHED_RR";
+        default:          return "UNKNOWN";
+    }
+}
+
+// Helper macro for checking if a string is equal to the given target and then
+// setting output equal to ret and returning true if it is. This is meant to be
+// used with the following two common utility functions.
+#define CHECK_STR_EQ(input, target, ret, output) { \
+    strcmp_s(input, strlen(target), target, &ind); \
+    if (ind == 0) { \
+        *output = ret; \
+        return true; \
+    } \
+}
+
+bool parse_log_level(const char* log_lvl_str, log_lvl_t* log_lvl) {
+    int ind = 0;
+
+    // Check against all log levels
+    CHECK_STR_EQ(log_lvl_str, "DEBUG", LOG_LVL_DEBUG, log_lvl);
+    CHECK_STR_EQ(log_lvl_str, "INFO", LOG_LVL_INFO, log_lvl);
+    CHECK_STR_EQ(log_lvl_str, "WARN", LOG_LVL_WARN, log_lvl);
+    CHECK_STR_EQ(log_lvl_str, "ERROR", LOG_LVL_ERROR, log_lvl);
+
+    // If this is reached, it means none of the log levels returned, therefore
+    // this is an error and an unknown log level string.
+    LOG_ERROR("Unknown log level: %s", log_lvl_str);
+    return false;
+}
+
+bool parse_sched_policy(const char* sched_policy_str, int* sched_policy) {
+    int ind = 0;
+
+    // Check against all log levels
+    CHECK_STR_EQ(sched_policy_str, "SCHED_OTHER", SCHED_OTHER, sched_policy);
+    CHECK_STR_EQ(sched_policy_str, "SCHED_IDLE", SCHED_IDLE, sched_policy);
+    CHECK_STR_EQ(sched_policy_str, "SCHED_BATCH", SCHED_BATCH, sched_policy);
+    CHECK_STR_EQ(sched_policy_str, "SCHED_FIFO", SCHED_FIFO, sched_policy);
+    CHECK_STR_EQ(sched_policy_str, "SCHED_RR", SCHED_RR, sched_policy);
+
+    // If this is reached, it means none of the known scheduler policies were
+    // returned, therefore this is an error and an unknown scheduler policy
+    // string.
+    LOG_ERROR("Unknown Linux scheduler policy: %s", sched_policy_str);
+    return false;
 }

@@ -181,7 +181,7 @@ Socket::Socket(void* zmq_ctx, config_t* config, int socket_type) :
                 }
 
                 // Casting from int64_t to int, because ZeroMQ expects an int
-                int rcv_hwm = (int) cvt_rcv_hwm->body.integer;
+                int rcv_hwm = static_cast<int>(cvt_rcv_hwm->body.integer);
                 LOG_DEBUG("Setting XSUB recv HWM to: %d", rcv_hwm);
                 ZMQ_SETSOCKOPT(
                         m_zmq_socket, ZMQ_RCVHWM, &rcv_hwm, sizeof(rcv_hwm));
@@ -196,7 +196,7 @@ Socket::Socket(void* zmq_ctx, config_t* config, int socket_type) :
                 }
 
                 // Casting from int64_t to int, because ZeroMQ expects an int
-                int snd_hwm = (int) cvt_snd_hwm->body.integer;
+                int snd_hwm = static_cast<int>(cvt_snd_hwm->body.integer);
                 LOG_DEBUG("Setting XPUB send HWM to: %d", snd_hwm);
                 ZMQ_SETSOCKOPT(
                         m_zmq_socket, ZMQ_SNDHWM, &snd_hwm, sizeof(snd_hwm));

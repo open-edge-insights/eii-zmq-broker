@@ -22,6 +22,7 @@
  * @brief broker GTests unit tests
  */
 
+#include <pthread.h>
 #include <gtest/gtest.h>
 #include <eis/msgbus/msgbus.h>
 #include <eis/utils/json_config.h>
@@ -117,7 +118,8 @@ class BrokerTests : public ::testing::Test {
     }
 
  public:
-    void start_broker(const char* fe_conf_path, const char* be_conf_path) {
+    void start_broker(const char* fe_conf_path, const char* be_conf_path,
+                      int sched_policy, int sched_priority) {
         broker_pid = fork();
         if (broker_pid > 0) {
             // Wait for broker to start up
@@ -132,7 +134,12 @@ class BrokerTests : public ::testing::Test {
             config_t* fe_config = json_config_new(fe_conf_path);
             config_t* be_config = json_config_new(be_conf_path);
             LOG_DEBUG_0("Broker started");
-            g_broker = new Broker(fe_config, be_config);
+            if (sched_policy != -1 || sched_priority != -1) {
+                g_broker = new Broker(
+                        fe_config, be_config, sched_policy, sched_priority);
+            } else {
+                g_broker = new Broker(fe_config, be_config);
+            }
             g_broker->run_forever();
             delete g_broker;
             LOG_DEBUG_0("PROC BROKER EXITING");
@@ -148,7 +155,8 @@ class BrokerTests : public ::testing::Test {
      */
     void run_test(
             const char* fe_conf_path, const char* be_conf_path,
-            const char* pub_conf_path, const char* sub_conf_path) {
+            const char* pub_conf_path, const char* sub_conf_path,
+            int sched_policy=-1, int sched_priority=-1) {
         LOG_DEBUG("RUNNING TEST: %s",
                 ::testing::UnitTest::GetInstance()
                     ->current_test_info()
@@ -167,7 +175,7 @@ class BrokerTests : public ::testing::Test {
         be_config = NULL;
 
         // Start the broker process
-        start_broker(fe_conf_path, be_conf_path);
+        start_broker(fe_conf_path, be_conf_path, sched_policy, sched_priority);
 
         // Load configurations
         pub_config = json_config_new(pub_conf_path);
@@ -263,6 +271,47 @@ TEST_F(BrokerTests, frontend_ipc_backend_tcp_security_with_auth) {
              "./configs/backend_tcp_security_auth.json",
              "./configs/msgbus_ipc_publisher.json",
              "./configs/msgbus_tcp_subscriber_security.json");
+}
+
+TEST_F(BrokerTests, sched_batch_no_priority) {
+    run_test("./configs/frontend_tcp_no_security.json",
+             "./configs/backend_tcp_no_security.json",
+             "./configs/msgbus_tcp_publisher_no_security.json",
+             "./configs/msgbus_tcp_subscriber_no_security.json",
+             SCHED_BATCH);
+}
+
+TEST_F(BrokerTests, sched_batch_with_priority) {
+    // NOTE: This test should have a warning log statement saying that the
+    // priority is being ignored, because SCHED_BATCH has no concept of
+    // prioritization
+    run_test("./configs/frontend_tcp_no_security.json",
+             "./configs/backend_tcp_no_security.json",
+             "./configs/msgbus_tcp_publisher_no_security.json",
+             "./configs/msgbus_tcp_subscriber_no_security.json",
+             SCHED_BATCH, 50);
+}
+
+TEST_F(BrokerTests, sched_fifo_no_priority) {
+    // NOTE: This test should have a warning log statement saying that since
+    // the priority is not provided it is defaulting to the lowest priority,
+    // which is 1.
+    run_test("./configs/frontend_tcp_no_security.json",
+             "./configs/backend_tcp_no_security.json",
+             "./configs/msgbus_tcp_publisher_no_security.json",
+             "./configs/msgbus_tcp_subscriber_no_security.json",
+             SCHED_FIFO);
+}
+
+TEST_F(BrokerTests, sched_fifo_with_priority) {
+    // NOTE: This test should have a warning log statement saying that since
+    // the priority is not provided it is defaulting to the lowest priority,
+    // which is 1.
+    run_test("./configs/frontend_tcp_no_security.json",
+             "./configs/backend_tcp_no_security.json",
+             "./configs/msgbus_tcp_publisher_no_security.json",
+             "./configs/msgbus_tcp_subscriber_no_security.json",
+             SCHED_FIFO, 50);
 }
 
 /**

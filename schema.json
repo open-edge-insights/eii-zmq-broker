@@ -1,1 +1,106 @@
-{}
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "EISAzureBridge",
+    "type": "object",
+    "required": ["config", "interfaces"],
+    "additionalProperties": false,
+    "properties": {
+        "config": {
+            "type": "object",
+            "description": "EIS ZeroMQ Broker service configuration",
+            "properties": {
+                "sched_policy": {
+                    "type": "string",
+                    "description": "Linux scheduler policy for the main broker thread",
+                    "enum": ["SCHED_OTHER", "SCHED_BATCH", "SCHED_IDLE", "SCHED_FIFO", "SCHED_RR"]
+                },
+                "sched_priority": {
+                    "type": "integer",
+                    "description": "Linux scheduler thread priority, only valid for SCHED_FIFO and SCHED_RR",
+                    "min": 0,
+                    "max": 99
+                }
+            }
+        },
+        "interfaces": {
+            "type": "object",
+            "description": "Interfaces configuration for the service",
+            "required": ["Publishers", "Subscribers"],
+            "additionalProperties": false,
+            "properties": {
+                "Subscribers": {
+                    "$ref": "#/definitions/publishers_subscribers"
+                },
+                "Publishers": {
+                    "$ref": "#/definitions/publishers_subscribers"
+                }
+            }
+        }
+    },
+    "definitions": {
+        "publishers_subscribers": {
+            "$id": "#publishers_subscribers",
+            "type": "array",
+            "description": "Array for specifying the configuration of the publishers and subscribers interfaces for the broker",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": [
+                {
+                    "type": "object",
+                    "description": "Configuration for the frontend/backend publisher or subscriber sockets",
+                    "required": ["Name", "Type", "EndPoint", "Topics", "AllowedClients"],
+                    "properties": {
+                        "Name": {
+                            "type": "string",
+                            "description": "Name of the publisher/subscriber",
+                            "enum": ["frontend", "backend"]
+                        },
+                        "Type": {
+                            "type": "string",
+                            "description": "Type of ZeroMQ socket",
+                            "enum": ["zmq_tcp", "zmq_ipc"]
+                        },
+                        "EndPoint": {
+                            "type": ["string", "object"],
+                            "description": "ZeroMQ endpoint to use for the socket",
+                            "additionalProperties": false,
+                            "properties": {
+                                "SocketDir": {
+                                    "type": "string",
+                                    "description": "IPC socket file directory (only if Type is zmq_ipc)"
+                                },
+                                "SocketFile": {
+                                    "type": "string",
+                                    "description": "Specific IPC socket file to use (only if Type is zmq_ipc)"
+                                }
+                            }
+                        },
+                        "Topics": {
+                            "type": "array",
+                            "description": "List of pub/sub topics",
+                            "minItems": 1,
+                            "maxItems": 1,
+                            "items": [
+                                {
+                                    "type": "string",
+                                    "description": "Topic string",
+                                    "enum": ["frontend", "backend"]
+                                }
+                            ]
+                        },
+                        "AllowedClients": {
+                            "type": "array",
+                            "description": "List of services allowed to connect to the broker (only for zmq_tcp)",
+                            "items": [
+                                {
+                                    "type": "string",
+                                    "description": "Service App Names"
+                                }
+                            ]
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
