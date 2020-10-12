@@ -22,9 +22,9 @@ version: '3.6'
 
 services:
 ## Define EISZmqBroker service
-  ia_eis_zmq_broker:
+  ia_zmq_broker:
     depends_on:
-      - ia_eisbase
+      - ia_common
     build:
       context: $PWD/../EISZmqBroker
       dockerfile: $PWD/../EISZmqBroker/Dockerfile

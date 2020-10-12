@@ -29,7 +29,18 @@
             "additionalProperties": false,
             "properties": {
                 "Subscribers": {
-                    "$ref": "#/definitions/publishers_subscribers"
+                    "allOf": [
+                        { "$ref": "#/definitions/publishers_subscribers" },
+                        {
+                            "properties": {
+                                "PublisherAppName": {
+                                    "type": "string",
+                                    "description": "Name of publisher apps to connect to (must be * for the broker)",
+                                    "enum": ["*"]
+                                }
+                            }
+                        }
+                    ]
                 },
                 "Publishers": {
                     "$ref": "#/definitions/publishers_subscribers"
