@@ -58,12 +58,17 @@ endif()
 
 # Include header directories
 include_directories(
-    include/
-    ${IntelSafeString_INCLUDE}
-    ${EISConfigMgrNew_INCLUDE}
-    ${EISUtils_INCLUDE}
-    ${ZMQ_INCLUDE_DIRS})
-    # TODO: Add config manager
+include/
+${IntelSafeString_INCLUDE}
+${EISConfigMgrNew_INCLUDE}
+${EISUtils_INCLUDE}
+${ZMQ_INCLUDE_DIRS})
+
+# Copy over example configuration files
+file(GLOB CONFIGS "examples/*.json")
+foreach(CONFIG ${CONFIGS})
+    file(COPY "${CONFIG}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/examples")
+endforeach()
 
 # List out all C sources and set language property to C
 file(GLOB C_SOURCES "src/*.c")
