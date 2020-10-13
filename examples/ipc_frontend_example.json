@@ -1,0 +1,7 @@
+{
+    "type": "zmq_ipc",
+    "socket_dir": "/tmp",
+    "frontend": {
+        "socket_file": "frontend-sock"
+    }
+}
