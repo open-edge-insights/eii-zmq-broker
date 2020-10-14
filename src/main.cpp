@@ -23,6 +23,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <eis/utils/json_config.h>
 #include <unistd.h>
 #include <atomic>
@@ -141,6 +142,21 @@ static bool set_app_log_level() {
     return true;
 }
 
+/**
+ * Print the CLI usage to stderr.
+ *
+ * @param name - Name of the binary
+ */
+static void usage(const char* name) {
+    fprintf(stderr, "usage: %s [-h|--help] [<frontend-config> "
+            "<backend-config>]\n", name);
+    fprintf(stderr, "\t-h|--help         - Show this help\n");
+    fprintf(stderr, "\t<frontend-config> - (Optional) Frontend XSUB JSON "
+            "config\n");
+    fprintf(stderr, "\t<backend-config>  - (Optional) Backend XPUB JSON "
+            "config\n");
+}
+
 int main(int argc, char** argv) {
     // Configuration values to be used later
     eis::config_manager::ConfigMgr* cfgmgr = NULL;
@@ -160,6 +176,20 @@ int main(int argc, char** argv) {
     }
 
     // Command line parsing
+    // Check if -h or --help CLI params have been given
+    if (argc > 1) {
+        int short_help_ind = 0;
+        int help_ind = 0;
+        strcmp_s(argv[1], 0, "-h", &short_help_ind);
+        strcmp_s(argv[1], 0, "--help", &help_ind);
+
+        if (short_help_ind == 0 || help_ind == 0) {
+            usage(argv[0]);
+            return 0;  // Not an error, exit with 0 error code...
+        }
+    }
+    // else, continue with normal parsing
+
     if (argc > 1 && argc < 3) {
         LOG_ERROR_0("Too few arguments");
         return -1;
