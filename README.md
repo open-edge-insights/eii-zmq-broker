@@ -218,7 +218,7 @@ the **frontend** and **backend**.
         {
             "Name": "frontend",
             "Type": "zmq_tcp",
-            "EndPoint": "127.0.0.1:8765",
+            "EndPoint": "127.0.0.1:60514",
             "Topics": ["frontend"],
             "AllowedClients": ["*"]
         }
@@ -227,7 +227,7 @@ the **frontend** and **backend**.
         {
             "Name": "backend",
             "Type": "zmq_tcp",
-            "EndPoint": "127.0.0.1:8675",
+            "EndPoint": "127.0.0.1:60515",
             "Topics": ["backend"],
             "AllowedClients": ["*"]
         }
