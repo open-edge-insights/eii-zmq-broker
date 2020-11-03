@@ -1,0 +1,44 @@
+{
+    "Module" : {
+        "Name": "EISZmqBroker",
+        "Description": "EISZmqBroker module manifest",
+        "SchemaVersion": "0.2",
+        "ManifestFile": "${idx:eiszmqbroker:$EIS_VERSION}",
+        "RunAsUser": "$EIS_UID",
+        "RunAsGroup": "$EIS_UID",
+        "Resources": {
+            "CPU": 100,
+            "MemoryMB": 100
+        },
+        "ExecutionEnv": {
+            "AppName": "EISZmqBroker",
+            "ETCD_ENDPOINT": "${datastore.endpoint}",
+            "CONFIGMGR_CACERT": "${databucket.cacert}",
+            "CONFIGMGR_CERT": "${databucket.cert}",
+            "CONFIGMGR_KEY": "${databucket.key}",
+            "ETCD_PREFIX": "$ETCD_PREFIX",
+            "DEV_MODE": "$DEV_MODE",
+            "PROFILING_MODE": "false",
+            "PUBLISHER_backend_ENDPOINT" : "0.0.0.0:${ep.pubDataOutput.localport}",
+            "PUBLISHER_backend_TYPE" : "zmq_tcp",
+            "SUBSCRIBER_frontend_ENDPOINT" : "0.0.0.0:${ep.subDataIn.localport}",
+            "SUBSCRIBER_frontend_TYPE" : "zmq_tcp"
+        },
+        "Endpoints": [
+            {
+                "Name": "pubDataOutput",
+                "Endtype": "server",
+                "Port": "60515",
+                "DataType": "messages",
+                "Link": "brokerPubout"
+            },
+            {
+                "Name": "subDataIn",
+                "Endtype": "server",
+                "Port": "60514",
+                "DataType": "messages",
+                "Link": "brokerSubin"
+            }
+        ]
+    }
+}
