@@ -40,8 +40,7 @@
 #define CVT_RCV_HWM           "zmq_recv_hwm"
 #define CVT_SND_HWM           "zmq_send_hwm"
 #define CVT_XPUB_NODROP       "zmq_xpub_nodrop"
-#define CVT_FRONTEND          "frontend"
-#define CVT_BACKEND           "backend"
+#define CVT_FRONTEND          ""
 #define CVT_TCP_PUBLISH       "zmq_tcp_publish"
 #define ZMQ_TCP               "zmq_tcp"
 #define ZMQ_IPC               "zmq_ipc"
@@ -67,8 +66,8 @@ namespace eis {
 namespace zmqbroker {
 
 // Helper function prototypes
-static std::string create_ipc_uri(config_t* config, const char* topic);
-static std::string create_tcp_uri(config_t* config, const char* topic);
+static std::string create_ipc_uri(config_t* config, const char* key);
+static std::string create_tcp_uri(config_t* config, const char* key);
 
 Socket::Socket(void* zmq_ctx, config_t* config, int socket_type) :
     m_zmq_socket(NULL), m_monitor_socket(NULL), m_is_tcp(false),
@@ -83,7 +82,7 @@ Socket::Socket(void* zmq_ctx, config_t* config, int socket_type) :
     // Constant char* for the topic name inside of the cnofig_t depending on
     // whether or not the socket type is ZMQ_XSUB or ZMQ_XPUB (note: a check is
     // done later to assert that the socket_type is one of those two)
-    const char* topic = (socket_type == ZMQ_XSUB) ? CVT_FRONTEND : CVT_BACKEND;
+    const char* key = CVT_FRONTEND;
 
     try {
         LOG_DEBUG_0("Getting socket type");
@@ -102,7 +101,7 @@ Socket::Socket(void* zmq_ctx, config_t* config, int socket_type) :
 
         if (ind_ipc == 0) {
             LOG_DEBUG_0("Creating an IPC socket");
-            m_uri = create_ipc_uri(config, topic);
+            m_uri = create_ipc_uri(config, key);
         } else if (ind_tcp == 0) {
             LOG_DEBUG_0("Creating a TCP socket");
             m_is_tcp = true;
@@ -113,10 +112,10 @@ Socket::Socket(void* zmq_ctx, config_t* config, int socket_type) :
             // result of using the msgbus configuration structure rather than
             // a custom configuration structure for the interface
             if (socket_type == ZMQ_XPUB) {
-                topic = CVT_TCP_PUBLISH;
+                key = CVT_TCP_PUBLISH;
             }
 
-            m_uri = create_tcp_uri(config, topic);
+            m_uri = create_tcp_uri(config, key);
         } else {
             throw "Unknown socket type";
         }
@@ -139,33 +138,44 @@ Socket::Socket(void* zmq_ctx, config_t* config, int socket_type) :
 
         // Check if is TCP and set various socket options as a result
         if (m_is_tcp) {
-            // Retrieve the configuration object for the given topic
-            cvt_topic = config_get(config, topic);
-            if (cvt_topic == NULL) {
-                throw "Failed to retrieve topic object";
-            } else if (cvt_topic->type != CVT_OBJECT) {
-                throw "Topic in configuration must be an object";
-            }
-
             // Check if a curve server key was provided, if it was make the
-            // socket a curve server with that secret key
-            cvt_secret_key = config_value_object_get(
-                    cvt_topic, CVT_SERVER_SECRET_KEY);
-            if (cvt_secret_key != NULL) {
-                // Verify that the server secret key is a string
-                if (cvt_secret_key->type != CVT_STRING) {
-                    throw "Server secret key must be a string";
+            // socket a curve server with that secret key - note that the topic
+            // only ever exists in the configuration if the secret key is there
+            // since the code retrieves it's endpoint from the config manager
+            // style of configuration
+            cvt_topic = config_get(config, key);
+            if (cvt_topic != NULL) {
+                // Verify the topic configuration value is an object
+                if (cvt_topic->type != CVT_OBJECT) {
+                    throw "Topic in configuration must be an object";
                 }
 
-                // Make the socket use CurveZMQ encryption and ZAP
-                // authentication
-                value = 1;
-                ZMQ_SETSOCKOPT(
-                        m_zmq_socket, ZMQ_CURVE_SERVER, &value, sizeof(value));
+                // Retrieve the secret key from the topic configuration
+                cvt_secret_key = config_value_object_get(
+                        cvt_topic, CVT_SERVER_SECRET_KEY);
+                if (cvt_secret_key != NULL) {
+                    // It is okay that the key not exist here, because in
+                    // the message bus configuration the zmq_tcp_publish or
+                    // the empty string ("") key will be there with the host
+                    // and port, but no secret key. This just means we are
+                    // running without authentication.
 
-                // Add the server secret key to the socket
-                ZMQ_SETSOCKOPT(m_zmq_socket, ZMQ_CURVE_SECRETKEY,
-                               cvt_secret_key->body.string, 40);
+                    // Verify it is a string
+                    if (cvt_secret_key->type != CVT_STRING) {
+                        throw "Server secret key must be a string";
+                    }
+
+                    // Make the socket use CurveZMQ encryption and ZAP
+                    // authentication
+                    value = 1;
+                    ZMQ_SETSOCKOPT(
+                            m_zmq_socket, ZMQ_CURVE_SERVER, &value,
+                            sizeof(value));
+
+                    // Add the server secret key to the socket
+                    ZMQ_SETSOCKOPT(m_zmq_socket, ZMQ_CURVE_SECRETKEY,
+                                   cvt_secret_key->body.string, 40);
+                }
             }
         }
 
@@ -267,18 +277,31 @@ bool Socket::is_tcp() { return m_is_tcp; }
 
 void* Socket::get_socket() { return m_zmq_socket; }
 
-static std::string create_ipc_uri(config_t* config, const char* topic) {
+static std::string create_ipc_uri(config_t* config, const char* key) {
     std::ostringstream os;
 
     // Add initial part of the URI
     os << "ipc://";
 
+    // Get EndPoint object
+    config_value_t* cvt_endpoint = config_get(config, key);
+    if (cvt_endpoint == NULL) {
+        throw std::runtime_error("Config missing key: " + std::string(key));
+    } else if (cvt_endpoint->type != CVT_OBJECT) {
+        config_value_destroy(cvt_endpoint);
+        throw std::runtime_error(
+                "Key, \"" + std::string(key) + "\" must be an object");
+    }
+
     // Get socket directory
     config_value_t* cvt_sock_dir = config_get(config, CVT_SOCK_DIR);
     if (cvt_sock_dir == NULL) {
-        throw "Config missing \"socket_dir\" key";
+        config_value_destroy(cvt_endpoint);
+        throw std::runtime_error(
+                "Config missing key: " + std::string(CVT_SOCK_DIR));
     } else if (cvt_sock_dir->type != CVT_STRING) {
         config_value_destroy(cvt_sock_dir);
+        config_value_destroy(cvt_endpoint);
         throw "Socket directory must be a string";
     }
 
@@ -287,79 +310,76 @@ static std::string create_ipc_uri(config_t* config, const char* topic) {
 
     // Get the config object associated with the topic to obtain the socket
     // file
-    config_value_t* cvt_topic = config_get(config, topic);
-    if (cvt_topic == NULL) {
-        throw "Failed to get configuration object for the socket topic";
-    } else if (cvt_topic->type != CVT_OBJECT) {
-        config_value_destroy(cvt_topic);
-        throw "Topic configuration type must be an object";
-    }
-
-    // Get socket file
     config_value_t* cvt_sock_file = config_value_object_get(
-            cvt_topic, CVT_SOCK_FILE);
-
-    // No longer need the reference to the config_value_t object
-    config_value_destroy(cvt_topic);
+            cvt_endpoint, CVT_SOCK_FILE);
 
     // Check that the socket file is correct
     if (cvt_sock_file == NULL) {
-        throw "Config missing \"socket_file\" key";
+        config_value_destroy(cvt_endpoint);
+        throw std::runtime_error(
+                "Config missing key: " + std::string(CVT_SOCK_FILE));
     } else if (cvt_sock_file->type != CVT_STRING) {
         config_value_destroy(cvt_sock_file);
+        config_value_destroy(cvt_endpoint);
         throw "Socket file must be a string";
     }
 
     os << cvt_sock_file->body.string;
     config_value_destroy(cvt_sock_file);
+    config_value_destroy(cvt_endpoint);
 
     return os.str();
 }
 
-static std::string create_tcp_uri(config_t* config, const char* topic) {
+static std::string create_tcp_uri(config_t* config, const char* key) {
     std::ostringstream os;
 
     // Add initial part of the URI
     os << "tcp://";
 
-    // Get the config object associated with the topic to obtain the socket
-    // file
-    config_value_t* cvt_topic = config_get(config, topic);
-    if (cvt_topic == NULL) {
-        throw "Failed to get configuration object for the socket topic";
-    } else if (cvt_topic->type != CVT_OBJECT) {
-        config_value_destroy(cvt_topic);
-        throw "Topic configuration type must be an object";
+    // Get EndPoint object
+    config_value_t* cvt_endpoint = config_get(config, key);
+    if (cvt_endpoint == NULL) {
+        throw std::runtime_error(
+                "Config missing key: " + std::string(key));
+    } else if (cvt_endpoint->type != CVT_OBJECT) {
+        config_value_destroy(cvt_endpoint);
+        throw std::runtime_error(
+                "Key, \"" + std::string(key) + "\" must be an object");
     }
 
-    // Get the TCP host value
-    config_value_t* cvt_host = config_value_object_get(cvt_topic, CVT_HOST);
+    // Extract Host
+    config_value_t* cvt_host = config_value_object_get(cvt_endpoint, CVT_HOST);
     if (cvt_host == NULL) {
-        config_value_destroy(cvt_topic);
-        throw "Config missing \"host\" key";
+        config_value_destroy(cvt_endpoint);
+        throw std::runtime_error(
+                "Config missing key: " + std::string(CVT_HOST));
     } else if (cvt_host->type != CVT_STRING) {
         config_value_destroy(cvt_host);
-        config_value_destroy(cvt_topic);
-        throw "Host must be a string";
+        config_value_destroy(cvt_endpoint);
+        throw "Host configuration value must be a sting";
     }
 
     os << cvt_host->body.string << ":";
     config_value_destroy(cvt_host);
 
-    // Get the TCP port value
-    config_value_t* cvt_port = config_value_object_get(cvt_topic, CVT_PORT);
+    // Extract Port
+    config_value_t* cvt_port = config_value_object_get(cvt_endpoint, CVT_PORT);
     if (cvt_port == NULL) {
-        config_value_destroy(cvt_topic);
-        throw "Config missing \"port\" key";
+        config_value_destroy(cvt_endpoint);
+        throw std::runtime_error(
+                "Config missing key: " + std::string(CVT_PORT));
     } else if (cvt_port->type != CVT_INTEGER) {
         config_value_destroy(cvt_port);
-        config_value_destroy(cvt_topic);
-        throw "Socket file must be an integer";
+        config_value_destroy(cvt_endpoint);
+        throw "Port configuration value must be an integer";
     }
 
     os << cvt_port->body.integer;
     config_value_destroy(cvt_port);
-    config_value_destroy(cvt_topic);
+
+    // Destroy endpoint object, since we are done with it
+    config_value_destroy(cvt_endpoint);
 
     return os.str();
 }

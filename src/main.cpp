@@ -180,8 +180,8 @@ int main(int argc, char** argv) {
     if (argc > 1) {
         int short_help_ind = 0;
         int help_ind = 0;
-        strcmp_s(argv[1], 0, "-h", &short_help_ind);
-        strcmp_s(argv[1], 0, "--help", &help_ind);
+        strcmp_s(argv[1], 2, "-h", &short_help_ind);
+        strcmp_s(argv[1], 6, "--help", &help_ind);
 
         if (short_help_ind == 0 || help_ind == 0) {
             usage(argv[0]);
@@ -358,6 +358,8 @@ int main(int argc, char** argv) {
                 LOG_INFO_0("Configuration changed - restarting the broker");
             }
         }
+    } catch (std::exception& ex) {
+        LOG_ERROR("Error in broker: %s", ex.what());
     } catch (const char* ex) {
         LOG_ERROR("Error in broker: %s", ex);
     }

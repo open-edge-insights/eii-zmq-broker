@@ -144,6 +144,9 @@ class BrokerTests : public ::testing::Test {
             delete g_broker;
             LOG_DEBUG_0("PROC BROKER EXITING");
             _exit(0);
+        } catch (std::exception& ex) {
+            LOG_ERROR("Error starting broker: %s", ex.what());
+            _exit(-1);
         } catch (const char* err) {
             LOG_ERROR("Error starting broker: %s", err);
             _exit(-1);

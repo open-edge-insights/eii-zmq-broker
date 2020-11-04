@@ -6,7 +6,7 @@
                 "Name": "frontend",
                 "Type": "zmq_tcp",
                 "EndPoint": "127.0.0.1:60514",
-                "Topics": ["frontend"],
+                "Topics": ["*"],
                 "PublisherAppName": "*",
                 "AllowedClients": ["*"]
             }
@@ -16,7 +16,7 @@
                 "Name": "backend",
                 "Type": "zmq_tcp",
                 "EndPoint": "127.0.0.1:60515",
-                "Topics": ["backend"],
+                "Topics": ["*"],
                 "AllowedClients": ["*"]
             }
         ]
