@@ -72,7 +72,7 @@ The following sections cover the security for the TCP and IPC modes.
 
 ### IPC
 
-When the broker is using an IPC socket (for either the **fronend** or **backend**
+When the broker is using an IPC socket (for either the **frontend** or **backend**
 sockets), the ability to send/receive messages shall be handled by Linux file
 permissions. There is no encryption which shall occur for the messages sent
 over IPC sockets.
@@ -137,19 +137,25 @@ The configuration of the broker falls into two main areas:
 2. **Interface Configuration** - Configuration of the networking interfaces
     (i.e. frontend and backend sockets)
 
-Aside from the interface and service configuration, there is one property that
-is set via an environmental variable, the `AppName` for the service. This
-determines how the service quries it configuration using the Configuration
-Manager APIs. For docker-compose, this is set in the `environment` section
-of the, "docker-compose.yml", file under the `ia_zmq_broker` section. The
-default value for this is `EISZmqBroker`.
+Aside from the interface and service configuration, there are two properties
+that are set via environmental variables: `AppName` and `DEV_MODE`. The
+`AppName` variable determines how the service quries its configuration using
+the Configuration Manager APIs. For docker-compose, this is set in the
+`environment` section of the, "docker-compose.yml", file under the
+`ia_eis_zmq_broker` section. The default value for this is `EISZmqBroker`.
 
-> **NOTE:** There are some other configuration properties in the `environment`
-> section of the docker-compose.yml file. These are fed to the service from
-> the, "build/.env", file. See the User Guide for more details.
+The `DEV_MODE` variable sets whether or not the broker will attempt to use
+certificates with the Configuration Manager APIs and over any TCP connections.
+This also is obtainerd from the `environment` section of the, "docker-compose.yml",
+file.
+
+**IMPORTANT NOTE:**
+There are some other configuration properties in the `environment` section of
+the, "docker-compose.yml", file. These are provided to the service from the,
+"build/.env", file. See the EIS User Guide for more details.
 
 The following two sections cover that various configuration properties the
-broker supports for these two areas.
+broker supports for interfaces and application configuration.
 
 ### Application/Service Configuration
 
@@ -219,7 +225,8 @@ the **frontend** and **backend**.
             "Name": "frontend",
             "Type": "zmq_tcp",
             "EndPoint": "127.0.0.1:60514",
-            "Topics": ["frontend"],
+            "Topics": ["*"],
+            "PublisherAppName": "*",
             "AllowedClients": ["*"]
         }
     ],
@@ -228,7 +235,7 @@ the **frontend** and **backend**.
             "Name": "backend",
             "Type": "zmq_tcp",
             "EndPoint": "127.0.0.1:60515",
-            "Topics": ["backend"],
+            "Topics": ["*"],
             "AllowedClients": ["*"]
         }
     ]
@@ -238,8 +245,10 @@ the **frontend** and **backend**.
 The primary difference to point out is that the, "Name", and, "Topics",
 fields are different. For the, "Subscribers", the, "Name", MUST be the
 string `frontend`, and the, "Topics", list must only contain a single value in
-it, which is also `frontend`. For the, "Publishers", object the same rules hold
-true, except instead of `frontend` it must be `backend`.
+it, which is `"*"`. For the, "Publishers", object the same rules hold
+true. Note that, "AllowedClients", also has a `"*"` in it. If you wish to only
+allowed certain services to connect to the broker, then change this to a list
+of the app name's of the services which are allowd to connect.
 
 This allows the broker to query specific configuration objects using the
 defined names `frontend` and `backend`. It is important to note that if the
@@ -260,7 +269,8 @@ and, "Type", values are different (as shown in the example below).
                 "SocketDir": "/tmp/socks",
                 "SocketFile": "frontend-socket"
             },
-            "Topics": ["frontend"],
+            "PublisherAppName": "*",
+            "Topics": ["*"],
             "AllowedClients": ["*"]
         }
     ],
@@ -272,7 +282,7 @@ and, "Type", values are different (as shown in the example below).
                 "SocketDir": "/tmp/socks",
                 "SocketFile": "backend-socket"
             },
-            "Topics": ["backend"],
+            "Topics": ["*"],
             "AllowedClients": ["*"]
         }
     ]
@@ -306,7 +316,38 @@ include the broker into the resulting docker-compose.yml file and it will
 include the broker's configuration into the `eis_config.json` which shall
 be used when provisioning EIS.
 
+## Connecting EIS Services to the EIS ZeroMQ Broker
+
+In order to connect EIS Services, such as the InfluxDB Connector or Discovery
+Creek services, you must edit their interfaces configuration to tell them the
+broker instance to connect to. Namely, you need to add two keys to the,
+"Publishers", configuration to have two additional keys:
+
+1. `BrokerAppName` - This specifies the AppName of the targeted broker instance
+2. `brokered` - This tells the EIS Message Bus that the given publisher instance
+    is brokered
+
+As an example, below is the default interfaces configuration for the Discovery
+Creek service:
+
+```javascript
+// TODO: Add example
+```
+
+The following adds the, "BrokerAppName", and, "brokered", keys to the default
+publisher's configuration.
+
+```javascript
+// TODO: Add example
+```
+
 ## Bare Metal
+
+**IMPORTANT NOTE:**
+
+Running the broker using bare-metal is not recommended for production environments.
+This way of running the broker is meant purely for development and debugging
+purposes.
 
 ### Compilation
 
@@ -358,16 +399,24 @@ The EIS ZeroMQ Broker can be configured from the EIS Configuration Manager as
 well as from environmental variables and JSON configuration files.
 
 To use the configuration obtained via the EIS Configuration Manager, simply
-start the binary with no parameters.
+start the binary with no parameters; however, make sure to set the `AppName`
+and `DEV_MODE` environmental variables. As mentioned at the beginning of the,
+"Bare Metal", section, this way of running the broker should only be done in
+development environments. As such, it is assumed that the `DEV_MODE` environmental
+variable will be set to `true` and no security shall be used with the Configuration
+Manager or over EIS Message Bus ZeroMQ TCP connections. Additionall, for running
+in this way, the, "ia_etcd", container must be running.
 
 ```sh
+# Set DEV_MODE environmental variable to "true"
+$ export DEV_MODE=true
+
+# Set the AppName environmental variable to "EISZmqBroker"
+$ export AppName=EISZmqBroker
+
+# Run the broker
 $ ./eis-zmq-broker
 ```
-
-> **NOTE:** As meentioned in the Configuration section above, you must set the
-> `AppName` and `DEV_MODE` environmental variables. For further details on
-> configuring the EIS ZeroMQ Broker via the Configuration Manager, see the
-> Configuration section.
 
 The broker also supports receiving its configuration through JSON configuration
 files and environmental variables. To set the log level, Linux scheduler policy
@@ -407,8 +456,8 @@ respectively as follows:
     // Socket directory to create the socket file in
     "socket_dir": "/tmp",
 
-    // Specifies the configuration for the frontend socket
-    "frontend": {
+    // Specifies the IPC endpoint config (i.e. socket directory and file)
+    "": {
         // IPC socket file to bind to for the frontend socket
         "socket_file": "frontend-sock"
     }
@@ -425,7 +474,7 @@ The table below desribes the purpose of each key in the JSON configuration file.
 | :-----------: | ---------------------------------------------------------------------------- |
 | `type`        | Specifies the ZeroMQ protocol to use, must be either `zmq_ipc` or `zmq_tcp`. |
 | `socket_dir`  | Specifies the directory in which to create all of the IPC socket files.      |
-| `fronend`     | This key tells what the configuration for the frontend socket shall be.      |
+| `""`          | Gives the IPC socket file configuration for the frontend IPC socket.         |
 | `socket_file` | This key specifies the name of the socket file to bind to.                   |
 
 For the `socket_file` key, when connecting a publisher, the publisher's
@@ -444,8 +493,8 @@ more details).
     // Socket directory to create the socket file in
     "socket_dir": "/tmp",
 
-    // Specifies the configuration for the backend socket
-    "backend": {
+    // Specifies the IPC endpoint config (i.e. socket directory and file)
+    "": {
         // IPC socket file to bind to for the backend socket
         "socket_file": "backend-sock"
     }
@@ -456,10 +505,7 @@ more details).
 > and can be used with the, "examples/configs/ipc_subscriber_brokered.json",
 > EIS Message Bus configuration file.
 
-The configuration for the backend socket is the exact same as for the fronted,
-except for one key difference. Instead of having a key named `frontend` it
-requires one called `backend`. This tells the broker the configuration for the
-IPC socket which subscribers shall connect to.
+The configuration for the backend socket is the exact same as for the frontend.
 
 For **TCP** configurations, the frontend anc backend configurations need to look
 respectively as follows:
@@ -476,11 +522,11 @@ respectively as follows:
     "allowed_clients": ["4J4?(I13cwJgqi+T5nxg:Dyr5)l&reK]cxxTfa9V"],
 
     // Specifies the configuration for the frontend socket
-    "frontend": {
-        // TCP host to bind to
+    "": {
+        // TCP host
         "host": "127.0.0.1",
 
-        // TCP port to bind to
+        // TCP port
         "port": 5568,
 
         // Server secret key to use for encryption / authentication
@@ -489,7 +535,7 @@ respectively as follows:
 }
 ```
 
-> **NOTE:* This example configuration is stored in, "examples/tcp_frontend_example.json",
+> **NOTE:** This example configuration is stored in, "examples/tcp_frontend_example.json",
 > and can be used with the, "examples/configs/tcp_publisher_brokered_with_security.json",
 > EIS Message Bus configuration file.
 
@@ -498,11 +544,20 @@ The table below desribes the purpose of each key in the JSON configuration file.
 |         Key         |                                     Description                                    |
 | :-----------------: | ---------------------------------------------------------------------------------- |
 | `type`              | Specifies the ZeroMQ protocol to use, must be either `zmq_ipc` or `zmq_tcp`.       |
+| `host`              | TCP host.                                                                          |
+| `port`              | TCP port.                                                                          |
 | `allowed_clients`   | Specifies the list of public keys for the publishers which are allowed to connect. |
-| `frontend`          | Gives the configuration for the frontend TCP socket.                               |
-| `host`              | TCP host to bind to.                                                               |
-| `port`              | TCP port to bind to.                                                               |
+| `""`                | Gives security configuration for the frontend TCP socket.                          |
 | `server_secret_key` | Secret key for the frontend socket for encryption / authentication.                |
+
+**IMPORTANT NOTE**
+
+When using JSON files for the configuration of the EIS ZeroMQ Broker, the JSON
+file is the configuration used by the EIS Message Bus, rather than the normal
+EIS interface configurations. This is why the JSON configuration differs
+from the configuration given via the `eis_config.json`. The JSON shown above
+for the frontend, and the following backend configuration, represent how the
+configuration manager alters that configuration to be in these forms.
 
 **Backend:**
 
@@ -517,11 +572,11 @@ The table below desribes the purpose of each key in the JSON configuration file.
 
     // Specifies the configuration for the frontend socket
     "zmq_tcp_publish": {
-        // TCP host to bind to
+        // TCP host
         "host": "127.0.0.1",
 
-        // TCP port to bind to
-        "port": 5569,
+        // TCP port (note that this is a different port from the frontend)
+        "port": 5569
 
         // Server secret key to use for encryption / authentication
         "server_secret_key": "qydUsM#PP4r<E*2]<]kbLRwk1IX:H^y{Gk56e:tc"
@@ -533,8 +588,8 @@ The table below desribes the purpose of each key in the JSON configuration file.
 > and can be used with the, "examples/configs/tcp_subscriber_with_security.json",
 > EIS Message Bus configuration file.
 
-All of the keys above have the same purpose and meaning as for the fronend
-configuration. Except, there is one key difference; instead of the `frontend`
+All of the keys above have the same purpose and meaning as for the frontend
+configuration. Except, there is one key difference; instead of the empty string
 key, the backend configuration has the `zmq_tcp_publish` key. This is because
 the broker adopts the same configuration definitions as the EIS Message Bus
 ZeroMQ protocol plugin. The ZeroMQ protocol plugin uses the `zmq_tcp_publish`
@@ -557,12 +612,6 @@ $ ./eis-zmq-broker examples/tcp_frontend_example.json examples/tcp_backend_examp
 > and, "backend_config.json", respectively. These could be named anything the
 > user wishes. For more examples of configurations, see the JSON files in the,
 > "tests/configs/", directory.
-
-**IMPORTANT NOTE:**
-
-Running the broker using JSON files is not recommended for production environments.
-This way of running the broker is meant purely for development and debugging
-purposes.
 
 ### Running Unit Tests
 

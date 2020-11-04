@@ -21,8 +21,8 @@
 version: '3.6'
 
 services:
-## Define EISZmqBroker service
-  ia_zmq_broker:
+  ## Define EISZmqBroker service
+  ia_eis_zmq_broker:
     depends_on:
       - ia_common
     build:
