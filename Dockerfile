@@ -54,4 +54,6 @@ RUN cd ./EISZmqBroker/ && \
     cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
     make
 
+HEALTHCHECK NONE
+
 ENTRYPOINT ["EISZmqBroker/build/eis-zmq-broker"]
