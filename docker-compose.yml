@@ -41,6 +41,11 @@ services:
     network_mode: host
     restart: unless-stopped
     user: ${EIS_UID}
+    security_opt:
+    - no-new-privileges
+    healthcheck:
+      test: ["CMD-SHELL", "exit", "0"]
+      interval: 5m    
     environment:
       AppName: "EISZmqBroker"
       CertType: "zmq"
