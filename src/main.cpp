@@ -38,7 +38,7 @@
 #define SCHED_POLICY       "SCHED_POLICY"
 #define SCHED_PRIORITY     "SCHED_PRIORITY"
 #define CVT_SCHED_POLICY   "sched_policy"
-#define CVT_SCHED_PRIORITY "sched_policy"
+#define CVT_SCHED_PRIORITY "sched_priority"
 
 // Globals
 eis::zmqbroker::Broker* g_broker = NULL;
@@ -61,7 +61,7 @@ static void signal_handler(int signo) {
  * out of a @c config_t structure.
  *
  * \note This function throws exceptions if the configuration values are
- *  in valid.
+ *  invalid.
  *
  * @param config - Configuration from which to extract values
  */
@@ -159,6 +159,7 @@ static void usage(const char* name) {
 
 int main(int argc, char** argv) {
     // Configuration values to be used later
+    int rc = 0;
     eis::config_manager::ConfigMgr* cfgmgr = NULL;
     config_t* frontend_config = NULL;
     config_t* backend_config = NULL;
@@ -190,154 +191,156 @@ int main(int argc, char** argv) {
     }
     // else, continue with normal parsing
 
-    if (argc > 1 && argc < 3) {
-        LOG_ERROR_0("Too few arguments");
-        return -1;
-    } else if (argc > 3) {
-        LOG_ERROR_0("Too many arguments");
-        return -1;
-    } else if (argc == 1) {
-        // Reading the configuration using the EIS ConfigMgr APIs
-        LOG_DEBUG_0("Initializing configuration manager");
-        cfgmgr = new eis::config_manager::ConfigMgr();
-
-        // Obtain the frontend configuration for the XSUB socket
-        eis::config_manager::SubscriberCfg* frontend =
-            cfgmgr->getSubscriberByName("frontend");
-        if (frontend == NULL) {
-            LOG_ERROR_0("Sub config NULL");
-            delete cfgmgr;
+    try {
+        if (argc > 1 && argc < 3) {
+            LOG_ERROR_0("Too few arguments");
             return -1;
-        }
-
-        frontend_config = eis::zmqbroker::wrap_appcfg(frontend);
-        if (frontend_config == NULL) {
-            LOG_ERROR_0("Failed to get config_t for frontend config");
-            delete cfgmgr;
+        } else if (argc > 3) {
+            LOG_ERROR_0("Too many arguments");
             return -1;
-        }
+        } else if (argc == 1) {
+            // Reading the configuration using the EIS ConfigMgr APIs
+            LOG_DEBUG_0("Initializing configuration manager");
+            cfgmgr = new eis::config_manager::ConfigMgr();
 
-        // Obtain the backend configuration for the XPUB socket
-        eis::config_manager::PublisherCfg* backend =
-            cfgmgr->getPublisherByName("backend");
-        if (backend == NULL) {
-            LOG_ERROR_0("Failed to get backend publisher config");
-            config_destroy(frontend_config);
-            delete cfgmgr;
-            return -1;
-        }
-
-        backend_config = eis::zmqbroker::wrap_appcfg(backend);
-        if (backend_config == NULL) {
-            LOG_ERROR_0("Failed to get config_t for backend config");
-            config_destroy(frontend_config);
-            delete cfgmgr;
-            return -1;
-        }
-
-        // Obtain the app's configuration
-        eis::config_manager::AppCfg* app_cfg = cfgmgr->getAppConfig();
-        if (app_cfg == NULL) {
-            LOG_ERROR_0("Failed to get app config");
-            config_destroy(frontend_config);
-            config_destroy(backend_config);
-            delete cfgmgr;
-            return -1;
-        }
-
-        // Obtain the config_t for the app's configuration
-        config_t* app_config = app_cfg->getConfig();
-        if (app_config == NULL) {
-            LOG_ERROR_0("Failed to get app config config_t");
-            config_destroy(frontend_config);
-            config_destroy(backend_config);
-            delete cfgmgr;
-            return -1;
-        }
-
-        // Extract the configuration values from the application's config
-        try {
-            extract_config(app_config);
-        } catch (const char* err) {
-            LOG_ERROR("Failed to extract config values: %s", err);
-            config_destroy(frontend_config);
-            config_destroy(backend_config);
-            delete cfgmgr;
-            return -1;
-        }
-
-        // Register a watch for the configuration of the broker
-        LOG_DEBUG_0("Registering config callback");
-        if (!app_cfg->watchConfig(on_config_change, NULL)) {
-            LOG_ERROR_0("Failed to register callback");
-            config_destroy(frontend_config);
-            config_destroy(backend_config);
-            delete cfgmgr;
-            return -1;
-        }
-    } else {
-        LOG_INFO("Loading frontend JSON config: %s", argv[1]);
-        frontend_config = json_config_new(argv[1]);
-        if (frontend_config == NULL) {
-            LOG_ERROR("Failed to load JSON config: %s", argv[1]);
-            return -1;
-        }
-
-        LOG_INFO("Loading backend JSON config: %s", argv[2]);
-        backend_config = json_config_new(argv[2]);
-        if (backend_config == NULL) {
-            LOG_ERROR("Failed to load JSON config: %s", argv[2]);
-            return -1;
-        }
-
-        char* sched_policy_str = getenv(SCHED_POLICY);
-        if (sched_policy_str != NULL) {
-            if (!parse_sched_policy(sched_policy_str, &g_sched_policy)) {
-                config_destroy(backend_config);
-                config_destroy(frontend_config);
+            // Obtain the frontend configuration for the XSUB socket
+            eis::config_manager::SubscriberCfg* frontend =
+                cfgmgr->getSubscriberByName("frontend");
+            if (frontend == NULL) {
+                LOG_ERROR_0("Sub config NULL");
+                delete cfgmgr;
                 return -1;
             }
-        }
 
-        char* sched_priority_str = getenv(SCHED_PRIORITY);
-        if (sched_priority_str != NULL) {
-            g_sched_priority = atoi(sched_priority_str);
+            frontend_config = eis::zmqbroker::wrap_appcfg(frontend);
+            if (frontend_config == NULL) {
+                LOG_ERROR_0("Failed to get config_t for frontend config");
+                delete cfgmgr;
+                return -1;
+            }
 
-            // If the sched_priority is not 0, then assume it atoi() parsed the
-            // string correctly. Otherwise, if it is 0, then the variable may
-            // be configured incorrectly. Confirm that the string value is
-            // indeed "0".
-            if (g_sched_priority == 0) {
-                int ind = 0;
-                strcmp_s(sched_priority_str, 1, "0", &ind);
-                if (ind != 0) {
-                    LOG_ERROR("Scheduler priority must be an integer not: %s",
-                              sched_priority_str);
+            // Obtain the backend configuration for the XPUB socket
+            eis::config_manager::PublisherCfg* backend =
+                cfgmgr->getPublisherByName("backend");
+            if (backend == NULL) {
+                LOG_ERROR_0("Failed to get backend publisher config");
+                config_destroy(frontend_config);
+                delete cfgmgr;
+                return -1;
+            }
+
+            backend_config = eis::zmqbroker::wrap_appcfg(backend);
+            if (backend_config == NULL) {
+                LOG_ERROR_0("Failed to get config_t for backend config");
+                config_destroy(frontend_config);
+                delete cfgmgr;
+                return -1;
+            }
+
+            // Obtain the app's configuration
+            eis::config_manager::AppCfg* app_cfg = cfgmgr->getAppConfig();
+            if (app_cfg == NULL) {
+                LOG_ERROR_0("Failed to get app config");
+                config_destroy(frontend_config);
+                config_destroy(backend_config);
+                delete cfgmgr;
+                return -1;
+            }
+
+            // Obtain the config_t for the app's configuration
+            config_t* app_config = app_cfg->getConfig();
+            if (app_config == NULL) {
+                LOG_ERROR_0("Failed to get app config config_t");
+                config_destroy(frontend_config);
+                config_destroy(backend_config);
+                delete cfgmgr;
+                return -1;
+            }
+
+            // Extract the configuration values from the application's config
+            try {
+                extract_config(app_config);
+            } catch (const char* err) {
+                LOG_ERROR("Failed to extract config values: %s", err);
+                config_destroy(frontend_config);
+                config_destroy(backend_config);
+                delete cfgmgr;
+                return -1;
+            }
+
+            // Register a watch for the configuration of the broker
+            LOG_DEBUG_0("Registering config callback");
+            if (!app_cfg->watchConfig(on_config_change, NULL)) {
+                LOG_ERROR_0("Failed to register callback");
+                config_destroy(frontend_config);
+                config_destroy(backend_config);
+                delete cfgmgr;
+                return -1;
+            }
+        } else {
+            LOG_INFO("Loading frontend JSON config: %s", argv[1]);
+            frontend_config = json_config_new(argv[1]);
+            if (frontend_config == NULL) {
+                LOG_ERROR("Failed to load JSON config: %s", argv[1]);
+                return -1;
+            }
+
+            LOG_INFO("Loading backend JSON config: %s", argv[2]);
+            backend_config = json_config_new(argv[2]);
+            if (backend_config == NULL) {
+                LOG_ERROR("Failed to load JSON config: %s", argv[2]);
+                return -1;
+            }
+
+            char* sched_policy_str = getenv(SCHED_POLICY);
+            if (sched_policy_str != NULL) {
+                if (!parse_sched_policy(sched_policy_str, &g_sched_policy)) {
+                    config_destroy(backend_config);
+                    config_destroy(frontend_config);
+                    return -1;
+                }
+            }
+
+            char* sched_priority_str = getenv(SCHED_PRIORITY);
+            if (sched_priority_str != NULL) {
+                g_sched_priority = atoi(sched_priority_str);
+
+                // If the sched_priority is not 0, then assume it atoi() parsed
+                // the string correctly. Otherwise, if it is 0, then the
+                // variable may be configured incorrectly. Confirm that the
+                // string value is indeed "0".
+                if (g_sched_priority == 0) {
+                    int ind = 0;
+                    strcmp_s(sched_priority_str, 1, "0", &ind);
+                    if (ind != 0) {
+                        LOG_ERROR(
+                            "Scheduler priority must be an integer not: %s",
+                             sched_priority_str);
+                        config_destroy(frontend_config);
+                        config_destroy(backend_config);
+                        return -1;
+                    }
+                } else if (g_sched_priority < 0 || g_sched_priority > 99) {
+                    LOG_ERROR_0(
+                            "Schedule priority must be in the range (0, 99)");
                     config_destroy(frontend_config);
                     config_destroy(backend_config);
                     return -1;
                 }
-            } else if (g_sched_priority < 0 || g_sched_priority > 99) {
-                LOG_ERROR_0("Schedule priority must be in the range (0, 99)");
-                config_destroy(frontend_config);
-                config_destroy(backend_config);
-                return -1;
             }
         }
-    }
 
-    // Get and set the log level (if the environmental variable is set).
-    // Re-setting the log level here, since the ConfigMgr may have set it
-    // again based on the values in the /GlobalEnv/ configuration.
-    if (!set_app_log_level()) {
-        // NOTE: Errors are logged by the set_app_log_level() function
-        if (frontend_config != NULL) { config_destroy(frontend_config); }
-        if (backend_config != NULL) { config_destroy(backend_config); }
-        if (cfgmgr != NULL) { delete cfgmgr; }
-        return -1;
-    }
+        // Get and set the log level (if the environmental variable is set).
+        // Re-setting the log level here, since the ConfigMgr may have set it
+        // again based on the values in the /GlobalEnv/ configuration.
+        if (!set_app_log_level()) {
+            // NOTE: Errors are logged by the set_app_log_level() function
+            if (frontend_config != NULL) { config_destroy(frontend_config); }
+            if (backend_config != NULL) { config_destroy(backend_config); }
+            if (cfgmgr != NULL) { delete cfgmgr; }
+            return -1;
+        }
 
-    try {
         while (true) {
             LOG_INFO_0("Initializing broker");
             g_broker = new eis::zmqbroker::Broker(
@@ -360,8 +363,10 @@ int main(int argc, char** argv) {
         }
     } catch (std::exception& ex) {
         LOG_ERROR("Error in broker: %s", ex.what());
+        rc = -1;
     } catch (const char* ex) {
         LOG_ERROR("Error in broker: %s", ex);
+        rc = -1;
     }
 
     if (g_broker != NULL) {
@@ -375,5 +380,5 @@ int main(int argc, char** argv) {
 
     LOG_DEBUG_0("Done.");
 
-    return 0;
+    return rc;
 }
