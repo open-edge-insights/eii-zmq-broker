@@ -45,7 +45,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "-z noexecstack -z relro -z now")
 find_package(IntelSafeString REQUIRED)
 find_package(EISUtils REQUIRED)
 find_package(ZMQ REQUIRED)
-find_package(EISConfigMgrNew REQUIRED)
+find_package(EISConfigMgr REQUIRED)
 
 # Export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -60,7 +60,7 @@ endif()
 include_directories(
 include/
 ${IntelSafeString_INCLUDE}
-${EISConfigMgrNew_INCLUDE}
+${EISConfigMgr_INCLUDE}
 ${EISUtils_INCLUDE}
 ${ZMQ_INCLUDE_DIRS})
 
@@ -82,7 +82,7 @@ set_source_files_properties(${CXX_SOURCES} PROPERTIES LANGUAGE CXX)
 add_executable(eis-zmq-broker "${CXX_SOURCES}" "${C_SOURCES}")
 target_link_libraries(eis-zmq-broker
     pthread
-    ${EISConfigMgrNew_LIBRARIES}
+    ${EISConfigMgr_LIBRARIES}
     ${IntelSafeString_LIBRARIES}
     ${EISUtils_LIBRARIES}
     ${ZMQ_LIBRARIES})
