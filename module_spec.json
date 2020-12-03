@@ -2,7 +2,7 @@
     "SchemaVersion": "0.2",
     "Runtime": "docker",
     "RuntimeOptions": {
-        "ContainerImage": "ia_eis_zmq_broker:$EIS_VERSION",
+        "ContainerImage": "${idx:ia_eis_zmq_broker:$EIS_VERSION}",
         "TemporaryVolumes": [
             "${EIS_INSTALL_PATH}/sockets:${SOCKET_DIR}"
         ]
