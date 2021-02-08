@@ -86,7 +86,7 @@ Broker::Broker(config_t* frontend_config, config_t* backend_config,
                 LOG_DEBUG_0("Starting ZAP authentication");
                 config_t* zap_config = config_new(
                         static_cast<void*>(allowed_clients), vec_free,
-                        vec_get_config_value);
+                        vec_get_config_value, NULL);
                 if (zap_config == NULL) {
                     throw "Failed to initialize ZAP config_t";
                 }

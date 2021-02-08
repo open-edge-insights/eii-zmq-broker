@@ -54,7 +54,7 @@ config_t* wrap_appcfg(config_manager::AppCfg* cfg) {
         }
 
         config_t* config = config_new(
-                (void*) conf, free_broker_conf, get_broker_conf_value);
+                (void*) conf, free_broker_conf, get_broker_conf_value, NULL);
         if (config == NULL) {
             throw "Failed to initialize config_t for broker config";
         }
