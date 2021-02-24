@@ -35,6 +35,8 @@ services:
         DOCKER_REGISTRY: ${DOCKER_REGISTRY}
         # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
+        UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
+        CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
     image: ${DOCKER_REGISTRY}ia_zmq_broker:${EII_VERSION}
     container_name: ia_zmq_broker
     hostname: ia_zmq_broker
