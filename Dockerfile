@@ -21,39 +21,52 @@
 # Dockerfile for cpp_publisher
 ARG EII_VERSION
 ARG DOCKER_REGISTRY
+ARG UBUNTU_IMAGE_VERSION
 ARG CMAKE_BUILD_TYPE
 ARG RUN_TESTS
-
-FROM ${DOCKER_REGISTRY}ia_eiibase:$EII_VERSION as eiibase
+ARG ARTIFACTS="/artifacts"
+FROM ${DOCKER_REGISTRY}ia_common:$EII_VERSION as common
+FROM ${DOCKER_REGISTRY}ia_eiibase:${EII_VERSION} as builder
 LABEL description="ia_zmq_broker image"
 
-ARG EII_UID
-ARG EII_USER_NAME
-RUN useradd -r -u ${EII_UID} -G video ${EII_USER_NAME}
+WORKDIR /app
 
-FROM ${DOCKER_REGISTRY}ia_common:$EII_VERSION as common
-FROM eiibase
-WORKDIR ${PY_WORK_DIR}
+ARG ARTIFACTS
+RUN mkdir $ARTIFACTS
 
-ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/usr/local/lib
+ARG CMAKE_INSTALL_PREFIX
+ENV CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+COPY --from=common ${CMAKE_INSTALL_PREFIX}/include ${CMAKE_INSTALL_PREFIX}/include
+COPY --from=common ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/lib
+COPY --from=common /eii/common/cmake ./common/cmake
+COPY --from=common /eii/common/libs ./common/libs
 
-COPY --from=common /usr/local/include /usr/local/include
-COPY --from=common /usr/local/lib /usr/local/lib
-COPY --from=common ${GO_WORK_DIR}/common/cmake ./common/cmake
-COPY --from=common ${GO_WORK_DIR}/common/libs ./common/libs
-COPY --from=common ${GO_WORK_DIR}/common/util ${GO_WORK_DIR}/common/util
-COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages
+ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:${CMAKE_INSTALL_PREFIX}/lib
 
 COPY . ZmqBroker/
 
-# Build the ZeroMQ broker
 RUN cd ./ZmqBroker/ && \
     rm -rf build/ && \
     mkdir build/ && \
     cd build/ && \
-    cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
+    cmake -DCMAKE_INSTALL_INCLUDEDIR=${CMAKE_INSTALL_PREFIX}/include -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .. && \
     make
+RUN cp ZmqBroker/build/zmq-broker $ARTIFACTS/
+
+FROM ubuntu:$UBUNTU_IMAGE_VERSION as runtime
+ARG EII_UID
+ARG EII_USER_NAME
+RUN useradd -r -u ${EII_UID} -G video ${EII_USER_NAME}
+
+ARG ARTIFACTS
+WORKDIR /app
+ARG CMAKE_INSTALL_PREFIX
+ENV CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+COPY --from=builder ${CMAKE_INSTALL_PREFIX}/lib ${CMAKE_INSTALL_PREFIX}/lib
+COPY --from=builder $ARTIFACTS .
+
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:${CMAKE_INSTALL_PREFIX}/lib
 
 HEALTHCHECK NONE
 
-ENTRYPOINT ["ZmqBroker/build/zmq-broker"]
+ENTRYPOINT ["./zmq-broker"]

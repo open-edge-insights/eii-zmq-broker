@@ -77,6 +77,7 @@ set_source_files_properties(${C_SOURCES} PROPERTIES LANGUAGE C)
 # List out all C++ sources and set language property to C++
 file(GLOB CXX_SOURCES "src/*.cpp")
 set_source_files_properties(${CXX_SOURCES} PROPERTIES LANGUAGE CXX)
+link_directories(${CMAKE_INSTALL_PREFIX}/lib)
 
 # Add ZeroMQ Broker target
 add_executable(zmq-broker "${CXX_SOURCES}" "${C_SOURCES}")
