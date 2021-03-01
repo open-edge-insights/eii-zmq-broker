@@ -23,24 +23,24 @@
  * @brief Configuration utilities
  */
 
-#ifndef EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_CONFIG_H_
-#define EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_CONFIG_H_
+#ifndef ZMQ_BROKER_INCLUDE_ZMQBROKER_CONFIG_H_
+#define ZMQ_BROKER_INCLUDE_ZMQBROKER_CONFIG_H_
 
-#include <eis/config_manager/app_cfg.hpp>
+#include <eii/config_manager/app_cfg.hpp>
 
-namespace eis {
+namespace eii {
 namespace zmqbroker {
 
 /**
- * Wrap a @c eis::config_manager::AppCfg object in a @c config_t structure
+ * Wrap a @c eii::config_manager::AppCfg object in a @c config_t structure
  * for the @c Broker class to digest the configuration.
  *
- * @param cfg - @c eis::config_manager::AppCfg object to wrap
+ * @param cfg - @c eii::config_manager::AppCfg object to wrap
  * @return config_t*
  */
 config_t* wrap_appcfg(config_manager::AppCfg* cfg);
 
 }  // namespace zmqbroker
-}  // namespace eis
+}  // namespace eii
 
-#endif  // EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_CONFIG_H_
+#endif  // ZMQ_BROKER_INCLUDE_ZMQBROKER_CONFIG_H_

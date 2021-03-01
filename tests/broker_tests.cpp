@@ -24,9 +24,9 @@
 
 #include <pthread.h>
 #include <gtest/gtest.h>
-#include <eis/msgbus/msgbus.h>
-#include <eis/utils/json_config.h>
-#include "eis/zmqbroker/broker.h"
+#include <eii/msgbus/msgbus.h>
+#include <eii/utils/json_config.h>
+#include "eii/zmqbroker/broker.h"
 
 // Defines
 #define PUB_SUB_TOPIC "broker-tests-topic"
@@ -39,7 +39,7 @@
     if (val != NULL) FAIL() << #val" should be NULL"; \
 }
 
-namespace eis {
+namespace eii {
 namespace zmqbroker {
 
 // Helper prototypes
@@ -331,7 +331,7 @@ static msg_envelope_t* initialize_message() {
 }
 
 }  // namespace zmqbroker
-}  // namespace eis
+}  // namespace eii
 
 /**
  * Overridden GTest main method

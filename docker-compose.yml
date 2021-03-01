@@ -21,48 +21,48 @@
 version: '3.6'
 
 services:
-  ## Define EISZmqBroker service
-  ia_eis_zmq_broker:
+  ## Define ZmqBroker service
+  ia_zmq_broker:
     depends_on:
       - ia_common
     build:
-      context: $PWD/../EISZmqBroker
-      dockerfile: $PWD/../EISZmqBroker/Dockerfile
+      context: $PWD/../ZmqBroker
+      dockerfile: $PWD/../ZmqBroker/Dockerfile
       args:
-        EIS_VERSION: ${EIS_VERSION}
-        EIS_UID: ${EIS_UID}
-        EIS_USER_NAME: ${EIS_USER_NAME}
+        EII_VERSION: ${EII_VERSION}
+        EII_UID: ${EII_UID}
+        EII_USER_NAME: ${EII_USER_NAME}
         DOCKER_REGISTRY: ${DOCKER_REGISTRY}
         # set CMAKE_BUILD_TYPE value to "Debug" to generate debug symbols
         CMAKE_BUILD_TYPE: "Release"
-    image: ${DOCKER_REGISTRY}ia_eis_zmq_broker:${EIS_VERSION}
-    container_name: ia_eis_zmq_broker
-    hostname: ia_eis_zmq_broker
+    image: ${DOCKER_REGISTRY}ia_zmq_broker:${EII_VERSION}
+    container_name: ia_zmq_broker
+    hostname: ia_zmq_broker
     network_mode: host
     restart: unless-stopped
-    user: ${EIS_UID}
+    user: ${EII_UID}
     security_opt:
     - no-new-privileges
     healthcheck:
       test: ["CMD-SHELL", "exit", "0"]
       interval: 5m    
     environment:
-      AppName: "EISZmqBroker"
+      AppName: "ZmqBroker"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eis_no_proxy},${ETCD_HOST}
+      no_proxy: ${eii_no_proxy},${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
     volumes:
-      - "vol_eis_socket:${SOCKET_DIR}"
+      - "vol_eii_socket:${SOCKET_DIR}"
     secrets:
       - ca_etcd
-      - etcd_EISZmqBroker_cert
-      - etcd_EISZmqBroker_key
+      - etcd_ZmqBroker_cert
+      - etcd_ZmqBroker_key
 
 secrets:
-  etcd_EISZmqBroker_cert:
-    file: provision/Certificates/EISZmqBroker/EISZmqBroker_client_certificate.pem
-  etcd_EISZmqBroker_key:
-    file: provision/Certificates/EISZmqBroker/EISZmqBroker_client_key.pem
+  etcd_ZmqBroker_cert:
+    file: provision/Certificates/ZmqBroker/ZmqBroker_client_certificate.pem
+  etcd_ZmqBroker_key:
+    file: provision/Certificates/ZmqBroker/ZmqBroker_client_key.pem

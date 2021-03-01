@@ -20,18 +20,18 @@
 
 /**
  * @file
- * @brief EIS ZeroMQ Broker
+ * @brief ZeroMQ Broker
  */
 
-#ifndef EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_BROKER_H_
-#define EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_BROKER_H_
+#ifndef ZMQ_BROKER_INCLUDE_ZMQBROKER_BROKER_H_
+#define ZMQ_BROKER_INCLUDE_ZMQBROKER_BROKER_H_
 
-#include <eis/utils/config.h>
+#include <eii/utils/config.h>
 #include <atomic>
-#include "eis/zmqbroker/zap.h"
-#include "eis/zmqbroker/socket.h"
+#include "eii/zmqbroker/zap.h"
+#include "eii/zmqbroker/socket.h"
 
-namespace eis {
+namespace eii {
 namespace zmqbroker {
 
 class Broker {
@@ -91,6 +91,6 @@ class Broker {
 };
 
 }  // namespace zmqbroker
-}  // namespace eis
+}  // namespace eii
 
-#endif  // EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_BROKER_H_
+#endif  // ZMQ_BROKER_INCLUDE_ZMQBROKER_BROKER_H_

@@ -18,7 +18,7 @@
 # FROM,OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 configure_file(
-    "${EIS_COMMON_CMAKE}/GoogleTestCMakeLists.txt.in"
+    "${EII_COMMON_CMAKE}/GoogleTestCMakeLists.txt.in"
     "${CMAKE_CURRENT_BINARY_DIR}/googletest-download/CMakeLists.txt")
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
                 RESULT_VARIABLE result
@@ -51,9 +51,9 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
     include_directories("${gtest_SOURCE_DIR}/include")
 endif()
 
-# Need the EIS Message Bus for the broker tests
-find_package(EISMsgEnv REQUIRED)
-find_package(EISMessageBus REQUIRED)
+# Need the EII Message Bus for the broker tests
+find_package(EIIMsgEnv REQUIRED)
+find_package(EIIMessageBus REQUIRED)
 
 # Remove main.cpp from the sources list which will get linked to the broker
 # tests. This is so that there are not two main entry points to the unit test
@@ -63,16 +63,16 @@ list(REMOVE_ITEM CXX_SOURCES "${PROJECT_SOURCE_DIR}/src/main.cpp")
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(broker-tests "broker_tests.cpp" ${CXX_SOURCES} ${C_SOURCES})
 target_link_libraries(broker-tests gtest_main
-    ${EISConfigMgrNew_LIBRARIES}
-    ${EISUtils_LIBRARIES}
-    ${EISMsgEnv_LIBRARIES}
-    ${EISMessageBus_LIBRARIES}
-    ${EISUtils_LIBRARIES}
+    ${EIIConfigMgrNew_LIBRARIES}
+    ${EIIUtils_LIBRARIES}
+    ${EIIMsgEnv_LIBRARIES}
+    ${EIIMessageBus_LIBRARIES}
+    ${EIIUtils_LIBRARIES}
     ${ZMQ_LIBRARIES}
     ${IntelSafeString_LIBRARIES})
 target_include_directories(broker-tests PRIVATE
-    ${EISMsgEnv_INCLUDE}
-    ${EISMessageBus_INCLUDE})
+    ${EIIMsgEnv_INCLUDE}
+    ${EIIMessageBus_INCLUDE})
 add_test(NAME broker-tests COMMAND broker-tests)
 
 # Make IPC socket directory

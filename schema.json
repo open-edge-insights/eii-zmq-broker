@@ -1,13 +1,13 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "EISAzureBridge",
+    "title": "AzureBridge",
     "type": "object",
     "required": ["config", "interfaces"],
     "additionalProperties": false,
     "properties": {
         "config": {
             "type": "object",
-            "description": "EIS ZeroMQ Broker service configuration",
+            "description": "ZeroMQ Broker service configuration",
             "properties": {
                 "sched_policy": {
                     "type": "string",

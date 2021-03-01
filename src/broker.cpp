@@ -19,7 +19,7 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief EIS ZeroMQ Broker class implementation
+ * @brief ZeroMQ Broker class implementation
  */
 
 #include <safe_lib.h>
@@ -27,19 +27,19 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <eis/utils/logger.h>
+#include <eii/utils/logger.h>
 #include <vector>
 #include <cassert>
 #include <string>
 #include <sstream>
 #include <cstring>
-#include "eis/zmqbroker/common.h"
-#include "eis/zmqbroker/broker.h"
+#include "eii/zmqbroker/common.h"
+#include "eii/zmqbroker/broker.h"
 
 // Defines
 #define CVT_ALLOWED_CLIENTS "allowed_clients"
 
-namespace eis {
+namespace eii {
 namespace zmqbroker {
 
 // Helper function prototypes
@@ -383,4 +383,4 @@ static config_value_t* vec_get_array_item(const void* array, int idx) {
 static void vec_free(void* varp) { }
 
 }  // namespace zmqbroker
-}  // namespace eis
+}  // namespace eii

@@ -19,19 +19,19 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief EIS ZeroMQ Broker main entrypoint
+ * @brief ZeroMQ Broker main entrypoint
  */
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <eis/utils/json_config.h>
+#include <eii/utils/json_config.h>
 #include <unistd.h>
 #include <atomic>
 #include <csignal>
-#include <eis/config_manager/config_mgr.hpp>
-#include "eis/zmqbroker/broker.h"
-#include "eis/zmqbroker/common.h"
-#include "eis/zmqbroker/config.h"
+#include <eii/config_manager/config_mgr.hpp>
+#include "eii/zmqbroker/broker.h"
+#include "eii/zmqbroker/common.h"
+#include "eii/zmqbroker/config.h"
 
 // Defines
 #define C_LOG_LEVEL        "C_LOG_LEVEL"
@@ -41,7 +41,7 @@
 #define CVT_SCHED_PRIORITY "sched_priority"
 
 // Globals
-eis::zmqbroker::Broker* g_broker = NULL;
+eii::zmqbroker::Broker* g_broker = NULL;
 int g_sched_policy = -1;
 int g_sched_priority = -1;
 std::atomic<bool> g_config_changed(false);
@@ -160,7 +160,7 @@ static void usage(const char* name) {
 int main(int argc, char** argv) {
     // Configuration values to be used later
     int rc = 0;
-    eis::config_manager::ConfigMgr* cfgmgr = NULL;
+    eii::config_manager::ConfigMgr* cfgmgr = NULL;
     config_t* frontend_config = NULL;
     config_t* backend_config = NULL;
 
@@ -199,12 +199,12 @@ int main(int argc, char** argv) {
             LOG_ERROR_0("Too many arguments");
             return -1;
         } else if (argc == 1) {
-            // Reading the configuration using the EIS ConfigMgr APIs
+            // Reading the configuration using the EII ConfigMgr APIs
             LOG_DEBUG_0("Initializing configuration manager");
-            cfgmgr = new eis::config_manager::ConfigMgr();
+            cfgmgr = new eii::config_manager::ConfigMgr();
 
             // Obtain the frontend configuration for the XSUB socket
-            eis::config_manager::SubscriberCfg* frontend =
+            eii::config_manager::SubscriberCfg* frontend =
                 cfgmgr->getSubscriberByName("frontend");
             if (frontend == NULL) {
                 LOG_ERROR_0("Sub config NULL");
@@ -212,7 +212,7 @@ int main(int argc, char** argv) {
                 return -1;
             }
 
-            frontend_config = eis::zmqbroker::wrap_appcfg(frontend);
+            frontend_config = eii::zmqbroker::wrap_appcfg(frontend);
             if (frontend_config == NULL) {
                 LOG_ERROR_0("Failed to get config_t for frontend config");
                 delete cfgmgr;
@@ -220,7 +220,7 @@ int main(int argc, char** argv) {
             }
 
             // Obtain the backend configuration for the XPUB socket
-            eis::config_manager::PublisherCfg* backend =
+            eii::config_manager::PublisherCfg* backend =
                 cfgmgr->getPublisherByName("backend");
             if (backend == NULL) {
                 LOG_ERROR_0("Failed to get backend publisher config");
@@ -229,7 +229,7 @@ int main(int argc, char** argv) {
                 return -1;
             }
 
-            backend_config = eis::zmqbroker::wrap_appcfg(backend);
+            backend_config = eii::zmqbroker::wrap_appcfg(backend);
             if (backend_config == NULL) {
                 LOG_ERROR_0("Failed to get config_t for backend config");
                 config_destroy(frontend_config);
@@ -238,7 +238,7 @@ int main(int argc, char** argv) {
             }
 
             // Obtain the app's configuration
-            eis::config_manager::AppCfg* app_cfg = cfgmgr->getAppConfig();
+            eii::config_manager::AppCfg* app_cfg = cfgmgr->getAppConfig();
             if (app_cfg == NULL) {
                 LOG_ERROR_0("Failed to get app config");
                 config_destroy(frontend_config);
@@ -343,7 +343,7 @@ int main(int argc, char** argv) {
 
         while (true) {
             LOG_INFO_0("Initializing broker");
-            g_broker = new eis::zmqbroker::Broker(
+            g_broker = new eii::zmqbroker::Broker(
                     frontend_config, backend_config,
                     g_sched_policy, g_sched_priority);
 

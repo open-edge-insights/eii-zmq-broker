@@ -22,7 +22,7 @@
  * @brief Common utility implementations
  */
 
-#include "eis/zmqbroker/common.h"
+#include "eii/zmqbroker/common.h"
 #include <safe_lib.h>
 #include <zmq.h>
 #include <pthread.h>

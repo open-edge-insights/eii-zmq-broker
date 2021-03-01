@@ -28,9 +28,9 @@
 #include <zmq.h>
 #include <safe_lib.h>
 
-#include <eis/utils/string.h>
-#include "eis/zmqbroker/zap.h"
-#include "eis/zmqbroker/common.h"
+#include <eii/utils/string.h>
+#include "eii/zmqbroker/zap.h"
+#include "eii/zmqbroker/common.h"
 
 // Defines
 #define ZAP_URI       "inproc://zeromq.zap.01"

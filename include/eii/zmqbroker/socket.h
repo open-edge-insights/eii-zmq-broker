@@ -21,16 +21,16 @@
 
 /**
  * @file
- * @brief EIS ZeroMQ Broker socket wrapper
+ * @brief ZeroMQ Broker socket wrapper
  */
 
-#ifndef EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_SOCKET_H_
-#define EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_SOCKET_H_
+#ifndef ZMQ_BROKER_INCLUDE_ZMQBROKER_SOCKET_H_
+#define ZMQ_BROKER_INCLUDE_ZMQBROKER_SOCKET_H_
 
-#include <eis/utils/config.h>
+#include <eii/utils/config.h>
 #include <string>
 
-namespace eis {
+namespace eii {
 namespace zmqbroker {
 
 class Socket {
@@ -84,6 +84,6 @@ class Socket {
 };
 
 }  // namespace zmqbroker
-}  // namespace eis
+}  // namespace eii
 
-#endif  // EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_SOCKET_H_
+#endif  // ZMQ_BROKER_INCLUDE_ZMQBROKER_SOCKET_H_

@@ -19,16 +19,16 @@
 // IN THE SOFTWARE.
 
 /**
- * @brief EIS ZeroMQ Broker socket wrapper implementation
+ * @brief ZeroMQ Broker socket wrapper implementation
  */
 
 #include <safe_lib.h>
 #include <zmq.h>
-#include <eis/utils/logger.h>
+#include <eii/utils/logger.h>
 #include <sstream>
 #include <cstring>
-#include "eis/zmqbroker/socket.h"
-#include "eis/zmqbroker/common.h"
+#include "eii/zmqbroker/socket.h"
+#include "eii/zmqbroker/common.h"
 
 // Defines
 #define CVT_TYPE              "type"
@@ -62,7 +62,7 @@
         cvt = NULL; \
     }
 
-namespace eis {
+namespace eii {
 namespace zmqbroker {
 
 // Helper function prototypes
@@ -385,4 +385,4 @@ static std::string create_tcp_uri(config_t* config, const char* key) {
 }
 
 }  // namespace zmqbroker
-}  // namespace eis
+}  // namespace eii
