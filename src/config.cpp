@@ -22,9 +22,9 @@
  * @brief Configuration utilities implementation
  */
 
-#include "eis/zmqbroker/config.h"
+#include "eii/zmqbroker/config.h"
 
-namespace eis {
+namespace eii {
 namespace zmqbroker {
 
 /**
@@ -112,4 +112,4 @@ static config_value_t* get_broker_conf_value(
 }
 
 }  // namespace zmqbroker
-}  // namespace eis
+}  // namespace eii

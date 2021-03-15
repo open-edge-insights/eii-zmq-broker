@@ -19,14 +19,14 @@
 # IN THE SOFTWARE.
 
 cmake_minimum_required(VERSION 3.11)
-project(eis-zmq-broker VERSION 2.4.0 LANGUAGES C CXX)
+project(zmq-broker VERSION 2.4.0 LANGUAGES C CXX)
 
 # Define CMake options
 option(WITH_TESTS    "Compile with unit tests" OFF)
 
 # Globals
-set(EIS_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../common/cmake")
-set(CMAKE_MODULE_PATH "${EIS_COMMON_CMAKE}")
+set(EII_COMMON_CMAKE "${CMAKE_CURRENT_SOURCE_DIR}/../common/cmake")
+set(CMAKE_MODULE_PATH "${EII_COMMON_CMAKE}")
 
 # Set C++ version
 set(CMAKE_CXX_STANDARD 14)
@@ -43,9 +43,9 @@ set(CMAKE_SHARED_LINKER_FLAGS "-z noexecstack -z relro -z now")
 
 # Find packages
 find_package(IntelSafeString REQUIRED)
-find_package(EISUtils REQUIRED)
+find_package(EIIUtils REQUIRED)
 find_package(ZMQ REQUIRED)
-find_package(EISConfigMgr REQUIRED)
+find_package(EIIConfigMgr REQUIRED)
 
 # Export compile commands
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -60,8 +60,8 @@ endif()
 include_directories(
 include/
 ${IntelSafeString_INCLUDE}
-${EISConfigMgr_INCLUDE}
-${EISUtils_INCLUDE}
+${EIIConfigMgr_INCLUDE}
+${EIIUtils_INCLUDE}
 ${ZMQ_INCLUDE_DIRS})
 
 # Copy over example configuration files
@@ -78,13 +78,13 @@ set_source_files_properties(${C_SOURCES} PROPERTIES LANGUAGE C)
 file(GLOB CXX_SOURCES "src/*.cpp")
 set_source_files_properties(${CXX_SOURCES} PROPERTIES LANGUAGE CXX)
 
-# Add EIS ZeroMQ Broker target
-add_executable(eis-zmq-broker "${CXX_SOURCES}" "${C_SOURCES}")
-target_link_libraries(eis-zmq-broker
+# Add ZeroMQ Broker target
+add_executable(zmq-broker "${CXX_SOURCES}" "${C_SOURCES}")
+target_link_libraries(zmq-broker
     pthread
-    ${EISConfigMgr_LIBRARIES}
+    ${EIIConfigMgr_LIBRARIES}
     ${IntelSafeString_LIBRARIES}
-    ${EISUtils_LIBRARIES}
+    ${EIIUtils_LIBRARIES}
     ${ZMQ_LIBRARIES})
 
 if(WITH_TESTS)

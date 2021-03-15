@@ -20,13 +20,13 @@
 
 /**
  * @file
- * @brief Common utility functions used in the EIS ZeroMQ Broker
+ * @brief Common utility functions used in the ZeroMQ Broker
  */
 
-#ifndef EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_COMMON_H_
-#define EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_COMMON_H_
+#ifndef ZMQ_BROKER_INCLUDE_ZMQBROKER_COMMON_H_
+#define ZMQ_BROKER_INCLUDE_ZMQBROKER_COMMON_H_
 
-#include <eis/utils/logger.h>
+#include <eii/utils/logger.h>
 
 // Helper macro for logging errors in ZeroMQ
 #define LOG_ZMQ_ERROR(msg) \
@@ -108,4 +108,4 @@ bool parse_sched_policy(const char* sched_policy_str, int* sched_policy);
 }  // __cplusplus
 #endif
 
-#endif  // EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_COMMON_H_
+#endif  // ZMQ_BROKER_INCLUDE_ZMQBROKER_COMMON_H_

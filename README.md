@@ -1,21 +1,21 @@
-EIS ZeroMQ Broker
+ZeroMQ Broker
 =================
 
 ## Overview
 
-The EIS ZeroMQ Broker provides the ability to proxy data coming over the
-EIS Message Bus ZeroMQ protocol plugin for publishers and subscribers.
-Traditionally, each EIS Message Bus ZeroMQ publisher has its own IPC socket
+The ZeroMQ Broker provides the ability to proxy data coming over the
+EII Message Bus ZeroMQ protocol plugin for publishers and subscribers.
+Traditionally, each EII Message Bus ZeroMQ publisher has its own IPC socket
 or TCP (host, port) combination. This broker allows for publishers to connect
 to the proxy's publisher TCP or IPC socket for sending published messages and
 subscribers to connect to one central subscriber TCP or IPC socket
 to receive incoming messages from the broker.
 
-The EIS ZeroMQ Broker builds off of the functionality provided by the ZeroMQ
+The ZeroMQ Broker builds off of the functionality provided by the ZeroMQ
 `zmq_proxy()` API, which uses two separate sockets and hands messages off from
 one socket to the other.
 
-The following diagram shows a high-level flow of how the EIS ZeroMQ Broker
+The following diagram shows a high-level flow of how the ZeroMQ Broker
 functions.
 
 ```
@@ -80,18 +80,18 @@ over IPC sockets.
 ### TCP
 
 For TCP connections, ZeroMQ offers mechanisms for both encryption and authentication.
-This is accomplished via elliptical curve keys generated when EIS is provisioned.
+This is accomplished via elliptical curve keys generated when EII is provisioned.
 These keys provide the encryption and authentication via the ZAP protocol and a
 list of allowed clients authentication is handled.
 
-The encryption and authentication is all handled under the hood by the EIS
+The encryption and authentication is all handled under the hood by the EII
 Message Bus for publishers and subscribers which are connecting to the broker.
 Via the configuration of the broker's messaging interfaces the broker has the
 required keys for decrypting messages and for determining whether or not a
 given publisher or subscriber is allowed to connect.
 
 See the configuration section for more details on listing out allowed clients
-and configuring the security for the EIS ZeroMQ Broker.
+and configuring the security for the ZeroMQ Broker.
 
 **IMPORTANT SECURITY IMPLICATION**
 
@@ -104,17 +104,17 @@ on a per topic/stream basis, only on a connection basis.
 
 ## Performance Implications
 
-When using the EIS ZeroMQ Broker it is important to understand the implications
-on the performance of the networking in the EIS platform.
+When using the ZeroMQ Broker it is important to understand the implications
+on the performance of the networking in the EII platform.
 
 By using the broker, an extra network hop is incurred for all messages sent
-over the EIS Message Bus ZeroMQ protocol plugin. This will increase the latency
+over the EII Message Bus ZeroMQ protocol plugin. This will increase the latency
 for the messages sent from the publishers connecting to the broker to the
 subscribers connecting to the broker.
 
 **IMPORTANT NOTE:**
 
-Having the broker running in an EIS deployment does not make every message
+Having the broker running in an EII deployment does not make every message
 from publishers go through the broker. Each publisher must be configured to
 connect to the broker. Publishers which are not configured to connect to the
 broker will still bind to their respective IPC socket or TCP (host, port)
@@ -122,11 +122,11 @@ combination.
 
 ## Configuration
 
-> **NOTE:** The JSON schema for the configuration properties of the EIS ZeroMQ
+> **NOTE:** The JSON schema for the configuration properties of the ZeroMQ
 > Broker can be found in the, "schema.json", file.
 
-Configuration of the EIS ZeroMQ Broker is predominantly accomplished from the
-EIS Configuration Manager APIs. However, it can also be configured via JSON
+Configuration of the ZeroMQ Broker is predominantly accomplished from the
+EII Configuration Manager APIs. However, it can also be configured via JSON
 files, as described in the Usage section below. The configuration via JSON
 files is only for development/debugging purposes. This section will focus on
 the preduction configuration of the broker.
@@ -142,7 +142,7 @@ that are set via environmental variables: `AppName` and `DEV_MODE`. The
 `AppName` variable determines how the service quries its configuration using
 the Configuration Manager APIs. For docker-compose, this is set in the
 `environment` section of the, "docker-compose.yml", file under the
-`ia_eis_zmq_broker` section. The default value for this is `EISZmqBroker`.
+`ia_zmq_broker` section. The default value for this is `ZmqBroker`.
 
 The `DEV_MODE` variable sets whether or not the broker will attempt to use
 certificates with the Configuration Manager APIs and over any TCP connections.
@@ -152,7 +152,7 @@ file.
 **IMPORTANT NOTE:**
 There are some other configuration properties in the `environment` section of
 the, "docker-compose.yml", file. These are provided to the service from the,
-"build/.env", file. See the EIS User Guide for more details.
+"build/.env", file. See the EII User Guide for more details.
 
 The following two sections cover that various configuration properties the
 broker supports for interfaces and application configuration.
@@ -164,7 +164,7 @@ policy and the other for the scheduler priority. These two properties are
 applied to the main thread which is running the ZeroMQ proxy.
 
 The configuration values must be specified in the config.json prior to running
-the `eis_builder.py` script or eis_config.json after using the `eis_builder.py`
+the `builder.py` script or eii_config.json after using the `builder.py`
 script.
 
 The table below specifies the details for these parameters. Note that neither of
@@ -176,16 +176,16 @@ knows they need to have a certain scheduling policy and priority for the broker.
 | `sched_policy`   | `string`  | Scheduling policy to set for the main thread. Must be: `SCHED_OTHER`, `SCHED_IDLE`, `SCHED_BATCH`, `SCHED_FIFO`, or `SCHED_RR`. |
 | `sched_priority` | `integer` | Sets the priority for the thread. Must be between `0` and `99`. Only valid for `SCHED_FIFO` and `SCHED_RR` policies.            |
 
-An example of applying these two settings to the EIS ZeroMQ Broker's
+An example of applying these two settings to the ZeroMQ Broker's
 configuration is shown below. In this example, the configuration is an
-excerpt from the, 'IEdgeInsights/build/provision/config/eis_config.json",
-generated while using the `eis_builder.py` script.
+excerpt from the, 'IEdgeInsights/build/provision/config/eii_config.json",
+generated while using the `builder.py` script.
 
 ```javascript
 {
     // ... omitted ...
 
-    "/EISZmqBroker/config": {
+    "/ZmqBroker/config": {
         "sched_policy": "SCHED_FIFO",
         "sched_priority": 42
     }
@@ -194,7 +194,7 @@ generated while using the `eis_builder.py` script.
 }
 ```
 
-> **NOTE:** There will also be an `/EISZmqBroker/interfaces` section associated
+> **NOTE:** There will also be an `/ZmqBroker/interfaces` section associated
 > with the broker, but that is covered in the next section.
 
 The configuration above sets the Linux scheduler policy to `SCHED_FIFO` and its
@@ -203,14 +203,14 @@ broker thread will default to the Linux default thread scheduling policy/priorit
 
 ### Interface Configuration
 
-The configuration of the networking interfaces for the EIS ZeroMQ Broker is
+The configuration of the networking interfaces for the ZeroMQ Broker is
 divided into two sections, "Subscribers", and, "Publishers". The, "Subscribers",
 sections sets the configuration for the **frontend** socket (since it subscribes
 to the messages coming from publishers), and the, "Publishers", section
 determines the configuration for the **backend** socket.
 
 The Configuration Manager API assumes that the, "Subscribers", and, "Publishers",
-section is a list. However, since the EIS ZeroMQ Broker does not use multiple
+section is a list. However, since the ZeroMQ Broker does not use multiple
 publisher and subscriber sockets, the lists must only contain one element.
 
 The single JSON object which is expected to be in the, "Subscribers", and,
@@ -306,25 +306,25 @@ above:
 
 ## Docker
 
-The EIS ZeroMQ Broker is integrated into the EIS docker-compose ecosystem. To
+The ZeroMQ Broker is integrated into the EII docker-compose ecosystem. To
 build and use the Docker container, follow the defined building / provisioning
-instructions for EIS.
+instructions for EII.
 
-If you are using a YAML file with the `eis_builder.py` script, then make sure
-to add `EISZmqBroker` under the `AppName` section of the YAML file. This will
+If you are using a YAML file with the `builder.py` script, then make sure
+to add `ZmqBroker` under the `AppName` section of the YAML file. This will
 include the broker into the resulting docker-compose.yml file and it will
-include the broker's configuration into the `eis_config.json` which shall
-be used when provisioning EIS.
+include the broker's configuration into the `eii_config.json` which shall
+be used when provisioning.
 
-## Connecting EIS Services to the EIS ZeroMQ Broker
+## Connecting EII Services to the ZeroMQ Broker
 
-In order to connect EIS Services, such as the InfluxDB Connector or Discovery
+In order to connect EII Services, such as the InfluxDB Connector or Discovery
 Creek services, you must edit their interfaces configuration to tell them the
 broker instance to connect to. Namely, you need to add two keys to the,
 "Publishers", configuration to have two additional keys:
 
 1. `BrokerAppName` - This specifies the AppName of the targeted broker instance
-2. `brokered` - This tells the EIS Message Bus that the given publisher instance
+2. `brokered` - This tells the EII Message Bus that the given publisher instance
     is brokered
 
 As an example, below is the default interfaces configuration for the Discovery
@@ -351,24 +351,24 @@ purposes.
 
 ### Compilation
 
-The EIS ZeroMQ Broker is written in C++ and as such utilizes the CMake build
+The ZeroMQ Broker is written in C++ and as such utilizes the CMake build
 system for building the binary for the broker.
 
-The EIS ZeroMQ Broker has the following dependencies:
+The ZeroMQ Broker has the following dependencies:
 
 * CMake 3.15+
 * IntelSafeString
-* EISUtils
+* EIIUtils
 * libzmq
-* EISConfigMgr
-* EISMessageBus (only required for unit tests)
+* EIIConfigMgr
+* EIIMessageBus (only required for unit tests)
 
-Prior to building the EIS ZeroMQ Broker, you must install these libraries on
-the target system. This can be done using the, "common/eis_libs_installer.sh"
+Prior to building the ZeroMQ Broker, you must install these libraries on
+the target system. This can be done using the, "common/eii_libs_installer.sh"
 script.
 
 Once the dependencies for the broker are installed on your system, run the
-following commands to build the EIS ZeroMQ Broker.
+following commands to build the ZeroMQ Broker.
 
 ```sh
 # 1. Create the build directory
@@ -386,36 +386,36 @@ $ cmake ..
 # it is recommended to build in Debug mode)
 $ cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=ON ..
 
-# 4. Build the EIS ZeroMQ Broker binary
+# 4. Build the ZeroMQ Broker binary
 $ make
 ```
 
 ### Usage
 
-After building the EIS ZeroMQ Broker you will have a binary named, "eis-zmq-broker".
-Use this binary to run the EIS ZeroMQ Broker.
+After building the ZeroMQ Broker you will have a binary named, "zmq-broker".
+Use this binary to run the ZeroMQ Broker.
 
-The EIS ZeroMQ Broker can be configured from the EIS Configuration Manager as
+The ZeroMQ Broker can be configured from the EII Configuration Manager as
 well as from environmental variables and JSON configuration files.
 
-To use the configuration obtained via the EIS Configuration Manager, simply
+To use the configuration obtained via the EII Configuration Manager, simply
 start the binary with no parameters; however, make sure to set the `AppName`
 and `DEV_MODE` environmental variables. As mentioned at the beginning of the,
 "Bare Metal", section, this way of running the broker should only be done in
 development environments. As such, it is assumed that the `DEV_MODE` environmental
 variable will be set to `true` and no security shall be used with the Configuration
-Manager or over EIS Message Bus ZeroMQ TCP connections. Additionall, for running
+Manager or over EII Message Bus ZeroMQ TCP connections. Additionall, for running
 in this way, the, "ia_etcd", container must be running.
 
 ```sh
 # Set DEV_MODE environmental variable to "true"
 $ export DEV_MODE=true
 
-# Set the AppName environmental variable to "EISZmqBroker"
-$ export AppName=EISZmqBroker
+# Set the AppName environmental variable to "ZmqBroker"
+$ export AppName=ZmqBroker
 
 # Run the broker
-$ ./eis-zmq-broker
+$ ./zmq-broker
 ```
 
 The broker also supports receiving its configuration through JSON configuration
@@ -439,7 +439,7 @@ the second will be for the **backend** configuration.
 > for the socket which subscribers shall connect to.
 
 The contents of the JSON is analygous to the JSON configuration files used in
-the EIS Message Bus (see the IEdgeInsights/common/libs/EISMessageBus/README.md
+the EII Message Bus (see the IEdgeInsights/common/libs/EIIMessageBus/README.md
 for more information). The contents of the JSON files depends on whether if
 the given socket is supposed to use TCP or IPC.
 
@@ -466,7 +466,7 @@ respectively as follows:
 
 > **NOTE:* This example configuration is stored in, "examples/ipc_frontend_example.json",
 > and can be used with the, "examples/configs/ipc_publisher_brokered.json",
-> EIS Message Bus configuration file.
+> EII Message Bus configuration file.
 
 The table below desribes the purpose of each key in the JSON configuration file.
 
@@ -480,7 +480,7 @@ The table below desribes the purpose of each key in the JSON configuration file.
 For the `socket_file` key, when connecting a publisher, the publisher's
 configuration must also use this same `socket_file` key in the configuration
 for it. Otherwise, it will fail to connect because it will attempt to
-bind/connect to its topic name (see the EIS Message Bus's documentation for
+bind/connect to its topic name (see the EII Message Bus's documentation for
 more details).
 
 **Backend:**
@@ -503,7 +503,7 @@ more details).
 
 > **NOTE:* This example configuration is stored in, "examples/ipc_backend_example.json",
 > and can be used with the, "examples/configs/ipc_subscriber_brokered.json",
-> EIS Message Bus configuration file.
+> EII Message Bus configuration file.
 
 The configuration for the backend socket is the exact same as for the frontend.
 
@@ -537,7 +537,7 @@ respectively as follows:
 
 > **NOTE:** This example configuration is stored in, "examples/tcp_frontend_example.json",
 > and can be used with the, "examples/configs/tcp_publisher_brokered_with_security.json",
-> EIS Message Bus configuration file.
+> EII Message Bus configuration file.
 
 The table below desribes the purpose of each key in the JSON configuration file.
 
@@ -552,10 +552,10 @@ The table below desribes the purpose of each key in the JSON configuration file.
 
 **IMPORTANT NOTE**
 
-When using JSON files for the configuration of the EIS ZeroMQ Broker, the JSON
-file is the configuration used by the EIS Message Bus, rather than the normal
-EIS interface configurations. This is why the JSON configuration differs
-from the configuration given via the `eis_config.json`. The JSON shown above
+When using JSON files for the configuration of the ZeroMQ Broker, the JSON
+file is the configuration used by the EII Message Bus, rather than the normal
+EII interface configurations. This is why the JSON configuration differs
+from the configuration given via the `eii_config.json`. The JSON shown above
 for the frontend, and the following backend configuration, represent how the
 configuration manager alters that configuration to be in these forms.
 
@@ -586,12 +586,12 @@ configuration manager alters that configuration to be in these forms.
 
 > **NOTE:* This example configuration is stored in, "examples/tcp_backend_example.json",
 > and can be used with the, "examples/configs/tcp_subscriber_with_security.json",
-> EIS Message Bus configuration file.
+> EII Message Bus configuration file.
 
 All of the keys above have the same purpose and meaning as for the frontend
 configuration. Except, there is one key difference; instead of the empty string
 key, the backend configuration has the `zmq_tcp_publish` key. This is because
-the broker adopts the same configuration definitions as the EIS Message Bus
+the broker adopts the same configuration definitions as the EII Message Bus
 ZeroMQ protocol plugin. The ZeroMQ protocol plugin uses the `zmq_tcp_publish`
 key for setting the TCP (host, port) combinations for all publishers under a
 single message bus context. The broker uses the same configuration to keep it
@@ -602,10 +602,10 @@ run the broker binary as follows:
 
 ```sh
 # IPC Example
-$ ./eis-zmq-broker examples/ipc_frontend_example.json examples/ipc_backend_example.json
+$ ./zmq-broker examples/ipc_frontend_example.json examples/ipc_backend_example.json
 
 # TCP Example
-$ ./eis-zmq-broker examples/tcp_frontend_example.json examples/tcp_backend_example.json
+$ ./zmq-broker examples/tcp_frontend_example.json examples/tcp_backend_example.json
 ```
 
 > **NOTE:** It is assumed the configurations are named, "frontend_config.json",
@@ -615,7 +615,7 @@ $ ./eis-zmq-broker examples/tcp_frontend_example.json examples/tcp_backend_examp
 
 ### Running Unit Tests
 
-If the EIS ZeroMQ Broker was built with the `-DWITH_TESTS=ON` flag set for the
+If the ZeroMQ Broker was built with the `-DWITH_TESTS=ON` flag set for the
 CMake command, then do the following to run the unit tests:
 
 > **NOTE:** The commands below assume you are in the, "build/", directory created

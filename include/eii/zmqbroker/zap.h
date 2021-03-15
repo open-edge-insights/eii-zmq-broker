@@ -23,8 +23,8 @@
  * @brief ZeroMQ Authentication Protocol (ZAP)
  */
 
-#ifndef EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_ZAP_H_
-#define EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_ZAP_H_
+#ifndef ZMQ_BROKER_INCLUDE_ZMQBROKER_ZAP_H_
+#define ZMQ_BROKER_INCLUDE_ZMQBROKER_ZAP_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,7 +32,7 @@ extern "C" {
 
 #include <pthread.h>
 #include <stdbool.h>
-#include <eis/utils/config.h>
+#include <eii/utils/config.h>
 
 /**
  * Internal context object for the ZAP authentication thread.
@@ -69,4 +69,4 @@ void zap_destroy(zap_ctx_t* zap_ctx);
 }  // __cpluspls
 #endif
 
-#endif  // EIS_ZMQ_BROKER_INCLUDE_EIS_ZMQBROKER_ZAP_H_
+#endif  // ZMQ_BROKER_INCLUDE_ZMQBROKER_ZAP_H_

@@ -19,20 +19,20 @@
 # SOFTWARE.
 
 # Dockerfile for cpp_publisher
-ARG EIS_VERSION
+ARG EII_VERSION
 ARG DOCKER_REGISTRY
 ARG CMAKE_BUILD_TYPE
 ARG RUN_TESTS
 
-FROM ${DOCKER_REGISTRY}ia_eisbase:$EIS_VERSION as eisbase
-LABEL description="ia_eis_zmq_broker image"
+FROM ${DOCKER_REGISTRY}ia_eiibase:$EII_VERSION as eiibase
+LABEL description="ia_zmq_broker image"
 
-ARG EIS_UID
-ARG EIS_USER_NAME
-RUN useradd -r -u ${EIS_UID} -G video ${EIS_USER_NAME}
+ARG EII_UID
+ARG EII_USER_NAME
+RUN useradd -r -u ${EII_UID} -G video ${EII_USER_NAME}
 
-FROM ${DOCKER_REGISTRY}ia_common:$EIS_VERSION as common
-FROM eisbase
+FROM ${DOCKER_REGISTRY}ia_common:$EII_VERSION as common
+FROM eiibase
 WORKDIR ${PY_WORK_DIR}
 
 ENV LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/usr/local/lib
@@ -44,10 +44,10 @@ COPY --from=common ${GO_WORK_DIR}/common/libs ./common/libs
 COPY --from=common ${GO_WORK_DIR}/common/util ${GO_WORK_DIR}/common/util
 COPY --from=common /usr/local/lib/python3.6/dist-packages/ /usr/local/lib/python3.6/dist-packages
 
-COPY . EISZmqBroker/
+COPY . ZmqBroker/
 
-# Build the EIS ZeroMQ broker
-RUN cd ./EISZmqBroker/ && \
+# Build the ZeroMQ broker
+RUN cd ./ZmqBroker/ && \
     rm -rf build/ && \
     mkdir build/ && \
     cd build/ && \
@@ -56,4 +56,4 @@ RUN cd ./EISZmqBroker/ && \
 
 HEALTHCHECK NONE
 
-ENTRYPOINT ["EISZmqBroker/build/eis-zmq-broker"]
+ENTRYPOINT ["ZmqBroker/build/zmq-broker"]

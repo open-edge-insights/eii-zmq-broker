@@ -21,11 +21,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: eiszmqbroker
-  namespace: eis
+  name: zmqbroker
+  namespace: eii
 spec:
   selector:
-    app: eiszmqbroker
+    app: zmqbroker
   ports:
   - name: broker-pub-port
     port: 60515
@@ -37,44 +37,44 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: eiszmqbroker
-  name: deployment-eiszmqbroker
-  namespace: eis
+    app: zmqbroker
+  name: deployment-zmqbroker
+  namespace: eii
 
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: eiszmqbroker
+      app: zmqbroker
   template:
     metadata:
       labels:
-        app: eiszmqbroker
+        app: zmqbroker
     spec:
       containers:
-      - name: ia-eiszmqbroker
-        image: ${DOCKER_REGISTRY}ia_eis_zmq_broker:${EIS_VERSION}
+      - name: ia-zmqbroker
+        image: ${DOCKER_REGISTRY}ia_zmq_broker:${EII_VERSION}
         securityContext:
           privileged: true
         volumeMounts:
-        - name: eis-socket
+        - name: eii-socket
           mountPath: ${SOCKET_DIR}
         - name: "ca-cert"
           mountPath: /run/secrets/ca_etcd
-        - name: "eiszmqbroker-cert"
-          mountPath: /run/secrets/etcd_EISZmqBroker_cert
-        - name: "eiszmqbroker-key"
-          mountPath: /run/secrets/etcd_EISZmqBroker_key
+        - name: "zmqbroker-cert"
+          mountPath: /run/secrets/etcd_ZmqBroker_cert
+        - name: "zmqbroker-key"
+          mountPath: /run/secrets/etcd_ZmqBroker_key
 
         env:
         - name: AppName
-          value: "EISZmqBroker"
+          value: "ZmqBroker"
         - name: DEV_MODE
           value: '${DEV_MODE}'
         - name: PROFILING_MODE
           value: '${PROFILING_MODE}'
         - name: no_proxy
-          value: '${eis_no_proxy},${ETCD_HOST}'
+          value: '${eii_no_proxy},${ETCD_HOST}'
         - name: ETCD_HOST
           value: etcd
         - name: ETCD_CLIENT_PORT
@@ -88,9 +88,9 @@ spec:
         - name: CONFIGMGR_CACERT
           value: "/run/secrets/ca_etcd/ca_certificate.pem"
         - name: CONFIGMGR_CERT
-          value: "/run/secrets/etcd_EISZmqBroker_cert/EISZmqBroker_client_certificate.pem"
+          value: "/run/secrets/etcd_ZmqBroker_cert/ZmqBroker_client_certificate.pem"
         - name: CONFIGMGR_KEY
-          value: "/run/secrets/etcd_EISZmqBroker_key/EISZmqBroker_client_key.pem"
+          value: "/run/secrets/etcd_ZmqBroker_key/ZmqBroker_client_key.pem"
 
         # MessageBus Endpoint Configuration
         - name: PUBLISHER_backend_TYPE
@@ -103,15 +103,15 @@ spec:
           value: "zmq_tcp"
 
       volumes:
-      - name: eis-socket
+      - name: eii-socket
         hostPath:
-          path: ${EIS_INSTALL_PATH}/sockets
+          path: ${EII_INSTALL_PATH}/sockets
       - name: "ca-cert"
         secret:
           secretName: ca-etcd
-      - name: "eiszmqbroker-cert"
+      - name: "zmqbroker-cert"
         secret:
-          secretName: eiszmqbroker-cert
-      - name: "eiszmqbroker-key"
+          secretName: zmqbroker-cert
+      - name: "zmqbroker-key"
         secret:
-          secretName: eiszmqbroker-key
+          secretName: zmqbroker-key
