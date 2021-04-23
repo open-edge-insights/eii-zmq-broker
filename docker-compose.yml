@@ -40,7 +40,6 @@ services:
     image: ${DOCKER_REGISTRY}ia_zmq_broker:${EII_VERSION}
     container_name: ia_zmq_broker
     hostname: ia_zmq_broker
-    network_mode: host
     restart: unless-stopped
     security_opt:
     - no-new-privileges
@@ -51,10 +50,15 @@ services:
       AppName: "ZmqBroker"
       CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
-      no_proxy: ${eii_no_proxy},${ETCD_HOST}
+      no_proxy: ${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
       ETCD_CLIENT_PORT: ${ETCD_CLIENT_PORT}
       ETCD_PREFIX: ${ETCD_PREFIX}
+    ports:
+      - 60514:60514
+      - 60515:60515
+    networks:
+      - eii
     volumes:
       - "vol_eii_socket:${SOCKET_DIR}"
     secrets:

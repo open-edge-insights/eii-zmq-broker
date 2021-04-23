@@ -224,7 +224,7 @@ the **frontend** and **backend**.
         {
             "Name": "frontend",
             "Type": "zmq_tcp",
-            "EndPoint": "127.0.0.1:60514",
+            "EndPoint": "0.0.0.0:60514",
             "Topics": ["*"],
             "PublisherAppName": "*",
             "AllowedClients": ["*"]
@@ -234,7 +234,7 @@ the **frontend** and **backend**.
         {
             "Name": "backend",
             "Type": "zmq_tcp",
-            "EndPoint": "127.0.0.1:60515",
+            "EndPoint": "0.0.0.0:60515",
             "Topics": ["*"],
             "AllowedClients": ["*"]
         }
@@ -524,7 +524,7 @@ respectively as follows:
     // Specifies the configuration for the frontend socket
     "": {
         // TCP host
-        "host": "127.0.0.1",
+        "host": "0.0.0.0",
 
         // TCP port
         "port": 5568,
@@ -573,7 +573,7 @@ configuration manager alters that configuration to be in these forms.
     // Specifies the configuration for the frontend socket
     "zmq_tcp_publish": {
         // TCP host
-        "host": "127.0.0.1",
+        "host": "0.0.0.0",
 
         // TCP port (note that this is a different port from the frontend)
         "port": 5569
