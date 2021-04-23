@@ -42,7 +42,6 @@ services:
     hostname: ia_zmq_broker
     network_mode: host
     restart: unless-stopped
-    user: ${EII_UID}
     security_opt:
     - no-new-privileges
     healthcheck:
