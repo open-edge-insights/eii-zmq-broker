@@ -1,0 +1,105 @@
+# Copyright (c) 2021 Intel Corporation.
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.config.zmqbroker.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+  - port: {{ .Values.config.zmqbroker.broker_pub_port }}
+    name: broker-pub-port
+  - port: {{ .Values.config.zmqbroker.broker_sub_port }}
+    name: broker-sub-port
+  selector:
+    app: zmqbroker
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: zmqbroker
+  name: deployment-zmqbroker
+  namespace: {{ .Values.namespace }}
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zmqbroker
+  template:
+    metadata:
+      labels:
+        app: zmqbroker
+    spec:
+      containers:
+      - name: ia-zmqbroker
+        image: {{ .Values.registry }}ia_zmq_broker:{{ .Values.eii_version }}
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        securityContext:
+          privileged: true
+        volumeMounts:
+        {{ if eq .Values.env.dev_mode false}}
+        - name: etcd-certs
+          mountPath: /run/secrets/etcd/
+        {{ end }}
+
+        env:
+        - name: AppName
+          value: "ZmqBroker"
+        - name: DEV_MODE
+          value: '{{ .Values.env.dev_mode }}'
+        - name: ETCD_HOST
+          value: {{ .Values.config.etcd.name }}
+        - name: ETCD_CLIENT_PORT
+          value: '{{ .Values.config.etcd.client_port }}'
+        - name:  ETCD_PREFIX
+          value: ''
+        - name: PUBLISHER_backend_TYPE
+          value: "zmq_tcp"
+        - name: PUBLISHER_backend_ENDPOINT
+          value: "0.0.0.0:{{ .Values.config.zmqbroker.broker_pub_port }}"
+        - name: SUBSCRIBER_frontend_ENDPOINT
+          value: "0.0.0.0:{{ .Values.config.zmqbroker.broker_sub_port }}"
+        - name: SUBSCRIBER_frontend_TYPE
+          value: "zmq_tcp"
+        {{ if eq .Values.env.dev_mode false}}
+        - name: CONFIGMGR_CACERT
+          value: "/run/secrets/etcd/ca_certificate.pem"
+        - name: CONFIGMGR_CERT
+          value: "/run/secrets/etcd/ZmqBroker_client_certificate.pem"
+        - name: CONFIGMGR_KEY
+          value: "/run/secrets/etcd/ZmqBroker_client_key.pem"
+        {{ end }}
+
+      volumes:
+      {{ if eq .Values.env.dev_mode false}}
+      - name: etcd-certs
+        secret:
+          secretName: eii-certs
+          items:
+          - key: ca_certificate.pem
+            path: ca_certificate.pem
+          - key: ZmqBroker_client_certificate.pem
+            path: ZmqBroker_client_certificate.pem
+          - key: ZmqBroker_client_key.pem
+            path: ZmqBroker_client_key.pem
+      {{ end }}
