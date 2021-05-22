@@ -1,0 +1,5 @@
+config:
+    zmqbroker:
+      name: zmqbroker
+      broker_pub_port: 60515
+      broker_sub_port: 60514
