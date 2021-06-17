@@ -20,13 +20,12 @@
 
 # Dockerfile for cpp_publisher
 ARG EII_VERSION
-ARG DOCKER_REGISTRY
 ARG UBUNTU_IMAGE_VERSION
 ARG CMAKE_BUILD_TYPE
 ARG RUN_TESTS
 ARG ARTIFACTS="/artifacts"
-FROM ${DOCKER_REGISTRY}ia_common:$EII_VERSION as common
-FROM ${DOCKER_REGISTRY}ia_eiibase:${EII_VERSION} as builder
+FROM ia_common:$EII_VERSION as common
+FROM ia_eiibase:${EII_VERSION} as builder
 LABEL description="ia_zmq_broker image"
 
 WORKDIR /app
