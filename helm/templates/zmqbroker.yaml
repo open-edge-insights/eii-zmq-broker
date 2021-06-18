@@ -52,7 +52,7 @@ spec:
     spec:
       containers:
       - name: ia-zmqbroker
-        image: {{ .Values.DOCKER_REGISTRY }}ia_zmq_broker:{{ .Values.EII_VERSION }}
+        image: {{ .Values.DOCKER_REGISTRY }}openedgeinsights/ia_zmq_broker:{{ .Values.EII_VERSION }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         securityContext:
           privileged: true
