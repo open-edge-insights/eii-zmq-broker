@@ -50,6 +50,10 @@ spec:
       labels:
         app: zmqbroker
     spec:
+      {{- if and .Values.DOCKER_USERNAME .Values.DOCKER_PASSWORD }}
+      imagePullSecrets:
+      - name: registryauth
+      {{- end }}
       containers:
       - name: ia-zmqbroker
         image: {{ .Values.DOCKER_REGISTRY }}openedgeinsights/ia_zmq_broker:{{ .Values.EII_VERSION }}
