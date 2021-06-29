@@ -318,8 +318,8 @@ be used when provisioning.
 
 ## Connecting EII Services to the ZeroMQ Broker
 
-In order to connect EII Services, such as the InfluxDB Connector or Discovery
-Creek services, you must edit their interfaces configuration to tell them the
+In order to connect EII Services, such as the VideoIngestion or VideoAnalytics
+services, user must edit their interfaces configuration to tell them the
 broker instance to connect to. Namely, you need to add two keys to the,
 "Publishers", configuration to have two additional keys:
 
@@ -327,18 +327,55 @@ broker instance to connect to. Namely, you need to add two keys to the,
 2. `brokered` - This tells the EII Message Bus that the given publisher instance
     is brokered
 
-As an example, below is the default interfaces configuration for the Discovery
-Creek service:
+As an example, below is the changes in the interfaces configuration for enabling
+the VideoIngestion and VideoAnalytics to communicate via ZmqBroker.
 
-```javascript
-// TODO: Add example
-```
+> **NOTE:** Though the example shows VideoIngestion and VideoAnalytics
+> using the ZmqBroker, it is not recommended for video streaming use-cases
+> due to the extra hop added to the video frames which will affect performance.
 
+Changes to VideoIngestion/config.json which is a publisher.
 The following adds the, "BrokerAppName", and, "brokered", keys to the default
 publisher's configuration.
 
 ```javascript
-// TODO: Add example
+    "interfaces": {
+        "Publishers": [
+            {
+                "Name": "default",
+                "Topics": [
+                    "camera1_stream"
+                ],
+                "Type": "zmq_tcp",
+                "EndPoint": "ia_zmq_broker:60514",
+                "brokered": true
+                "BrokerAppName": "ZmqBroker",
+                "AllowedClients": [
+                    "*",
+                ],
+            }
+        ]
+     }
+```
+
+For the subscriber which is VideoAnalytics, there wont be much change other than
+changing the endpoint to point to ZmqBroker along with PublisherAppName.
+
+```javascript
+    "interfaces": {
+        "Subscribers": [
+            {
+                "Name": "default",
+                "Type": "zmq_tcp",
+                "EndPoint": "ia_zmq_broker:60515",
+                "PublisherAppName": "ZmqBroker",
+                "Topics": [
+                    "camera1_stream"
+                ],
+                "zmq_recv_hwm": 50
+            }
+        ]
+    }
 ```
 
 ## Bare Metal
