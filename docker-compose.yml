@@ -36,6 +36,7 @@ services:
         CMAKE_BUILD_TYPE: "Release"
         UBUNTU_IMAGE_VERSION: ${UBUNTU_IMAGE_VERSION}
         CMAKE_INSTALL_PREFIX: ${EII_INSTALL_PATH}
+    read_only: true
     image: ${DOCKER_REGISTRY}openedgeinsights/ia_zmq_broker:${EII_VERSION}
     container_name: ia_zmq_broker
     hostname: ia_zmq_broker
