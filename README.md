@@ -1,3 +1,21 @@
+**Contents**
+
+- [ZeroMQ Broker](#zeromq-broker)
+  - [Overview](#overview)
+  - [Security](#security)
+    - [IPC](#ipc)
+    - [TCP](#tcp)
+  - [Performance Implications](#performance-implications)
+  - [Configuration](#configuration)
+    - [Application/Service Configuration](#applicationservice-configuration)
+    - [Interface Configuration](#interface-configuration)
+  - [Docker](#docker)
+  - [Connecting EII Services to the ZeroMQ Broker](#connecting-eii-services-to-the-zeromq-broker)
+  - [Bare Metal](#bare-metal)
+    - [Compilation](#compilation)
+    - [Usage](#usage)
+    - [Running Unit Tests](#running-unit-tests)
+
 ZeroMQ Broker
 =================
 
