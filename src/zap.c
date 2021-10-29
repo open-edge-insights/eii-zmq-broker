@@ -138,13 +138,11 @@ static void* zap_run(void* vargs) {
             }
         }
 
-#ifdef DEBUG
         if (accepted) {
             LOG_DEBUG_0("Client authentication successful");
         } else {
             LOG_DEBUG_0("Client authentication denied");
         }
-#endif
 
         // Send authentication response
         ZAP_SEND("1.0", ZMQ_SNDMORE);                     // Version
@@ -153,6 +151,9 @@ static void* zap_run(void* vargs) {
         ZAP_SEND("", ZMQ_SNDMORE);                        // Status text
         ZAP_SEND("", ZMQ_SNDMORE);                        // User ID
         ZAP_SEND("", 0);                                  // Meta data
+
+        // Reset accepted flag
+        accepted = false;
     }
 
     LOG_DEBUG_0("ZAP thread stopped");
