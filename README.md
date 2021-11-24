@@ -411,12 +411,12 @@ system for building the binary for the broker.
 
 The ZeroMQ Broker has the following dependencies:
 
-* CMake 3.15+
-* IntelSafeString
-* EIIUtils
-* libzmq
-* EIIConfigMgr
-* EIIMessageBus (only required for unit tests)
+- CMake 3.15+
+- IntelSafeString
+- EIIUtils
+- libzmq
+- EIIConfigMgr
+- EIIMessageBus (only required for unit tests)
 
 Prior to building the ZeroMQ Broker, you must install these libraries on
 the target system. This can be done using the, "common/eii_libs_installer.sh"
@@ -478,9 +478,9 @@ files and environmental variables. To set the log level, Linux scheduler policy
 and priority set the following environmental variables (defined in Configuration
 section of this README).
 
-* `C_LOG_LEVEL` - Log level (will default to `ERROR` log level)
-* `SCHED_POLCIY` - Scheduler policy
-* `SCHED_PRIORITY` - Scheduler priority
+- `C_LOG_LEVEL` - Log level (will default to `ERROR` log level)
+- `SCHED_POLCIY` - Scheduler policy
+- `SCHED_PRIORITY` - Scheduler priority
 
 Note that none of the above environmental variables are required to run the
 broker.
@@ -690,5 +690,5 @@ command line argument `--log-level`. An example of using the `DEBUG` log
 level is shown below:
 
 ```sh
-$ ./broker-tests --log-level DEBUG
+./broker-tests --log-level DEBUG
 ```
