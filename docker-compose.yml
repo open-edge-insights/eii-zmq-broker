@@ -48,7 +48,6 @@ services:
       interval: 5m    
     environment:
       AppName: "ZmqBroker"
-      CertType: "zmq"
       DEV_MODE: ${DEV_MODE}
       no_proxy: ${ETCD_HOST}
       ETCD_HOST: ${ETCD_HOST}
@@ -61,13 +60,5 @@ services:
       - eii
     volumes:
       - "vol_eii_socket:${SOCKET_DIR}"
-    secrets:
-      - ca_etcd
-      - etcd_ZmqBroker_cert
-      - etcd_ZmqBroker_key
-
-secrets:
-  etcd_ZmqBroker_cert:
-    file: provision/Certificates/ZmqBroker/ZmqBroker_client_certificate.pem
-  etcd_ZmqBroker_key:
-    file: provision/Certificates/ZmqBroker/ZmqBroker_client_key.pem
+      - ./Certificates/ZmqBroker:/run/secrets/ZmqBroker
+      - ./Certificates/rootca:/run/secrets/rootca
