@@ -40,7 +40,7 @@ static void free_broker_conf(void* varg);
 static config_value_t* get_broker_conf_value(const void*, const char*);
 
 config_t* wrap_appcfg(config_manager::AppCfg* cfg) {
-    broker_conf_t* conf = (broker_conf_t*) malloc(sizeof(broker_conf_t));
+    broker_conf_t* conf = reinterpret_cast<broker_conf_t*> (malloc(sizeof(broker_conf_t)));
     if (conf == NULL) {
         LOG_ERROR_0("Failed to malloc broker config");
         return NULL;
@@ -54,7 +54,7 @@ config_t* wrap_appcfg(config_manager::AppCfg* cfg) {
         }
 
         config_t* config = config_new(
-                (void*) conf, free_broker_conf, get_broker_conf_value, NULL);
+                reinterpret_cast<void*> (conf), free_broker_conf, get_broker_conf_value, NULL);
         if (config == NULL) {
             throw "Failed to initialize config_t for broker config";
         }
@@ -78,7 +78,7 @@ static void free_broker_conf(void* varg) {
         return;
     }
 
-    broker_conf_t* conf = (broker_conf_t*) varg;
+    broker_conf_t* conf = reinterpret_cast<broker_conf_t*> (varg);
     config_destroy(conf->msgbus_config);
 
     delete conf->app_cfg;
