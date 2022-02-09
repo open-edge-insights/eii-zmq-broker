@@ -60,5 +60,5 @@ services:
       - eii
     volumes:
       - "vol_eii_socket:${SOCKET_DIR}"
-      - ./Certificates/ZmqBroker:/run/secrets/ZmqBroker
-      - ./Certificates/rootca:/run/secrets/rootca
+      - ./Certificates/ZmqBroker:/run/secrets/ZmqBroker:ro
+      - ./Certificates/rootca/cacert.pem:/run/secrets/rootca/cacert.pem:ro
