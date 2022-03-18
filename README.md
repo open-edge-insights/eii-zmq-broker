@@ -1,33 +1,29 @@
-**Contents**
+# Contents
 
-- [ZeroMQ Broker](#zeromq-broker)
-  - [Overview](#overview)
-  - [Security](#security)
-    - [IPC](#ipc)
-    - [TCP](#tcp)
-  - [Performance Implications](#performance-implications)
-  - [Configuration](#configuration)
-    - [Application/Service Configuration](#applicationservice-configuration)
-    - [Interface Configuration](#interface-configuration)
-  - [Docker](#docker)
-  - [Connecting EII Services to the ZeroMQ Broker](#connecting-eii-services-to-the-zeromq-broker)
-  - [Bare Metal](#bare-metal)
-    - [Compilation](#compilation)
-    - [Usage](#usage)
-    - [Running Unit Tests](#running-unit-tests)
+- [Contents](#contents)
+  - [ZeroMQ Broker](#zeromq-broker)
+    - [Overview](#overview)
+    - [Security](#security)
+      - [IPC](#ipc)
+      - [TCP](#tcp)
+    - [Performance Implications](#performance-implications)
+    - [Configuration](#configuration)
+      - [Application/Service Configuration](#applicationservice-configuration)
+      - [Interface Configuration](#interface-configuration)
+    - [Docker](#docker)
+    - [Connecting OEI Services to the ZeroMQ Broker](#connecting-oei-services-to-the-zeromq-broker)
+    - [Bare Metal](#bare-metal)
+      - [Compilation](#compilation)
+      - [Usage](#usage)
+      - [Running Unit Tests](#running-unit-tests)
 
-ZeroMQ Broker
-=================
+## ZeroMQ Broker
 
-## Overview
+### Overview
 
-The ZeroMQ Broker provides the ability to proxy data coming over the
-EII Message Bus ZeroMQ protocol plugin for publishers and subscribers.
-Traditionally, each EII Message Bus ZeroMQ publisher has its own IPC socket
-or TCP (host, port) combination. This broker allows for publishers to connect
-to the proxy's publisher TCP or IPC socket for sending published messages and
-subscribers to connect to one central subscriber TCP or IPC socket
-to receive incoming messages from the broker.
+>**Note:** In this document, you will find labels of 'Edge Insights for Industrial (EII)' for filenames, paths, code snippets, and so on. Consider the references of EII as Open Edge Insights (OEI). This is due to the product name change of EII as OEI.
+
+The ZeroMQ Broker provides the ability to proxy data coming over the Message Bus ZeroMQ protocol plugin for publishers and subscribers. Traditionally, each Message Bus ZeroMQ publisher has its own IPC socket or TCP (host, port) combination. This broker allows for publishers to connect to the proxy's publisher TCP or IPC socket for sending published messages and subscribers to connect to one central subscriber TCP or IPC socket to receive incoming messages from the broker.
 
 The ZeroMQ Broker builds off of the functionality provided by the ZeroMQ
 `zmq_proxy()` API, which uses two separate sockets and hands messages off from
@@ -78,7 +74,7 @@ configuration) for each of its sockets. Messages are sent from publishers into
 the **frontend** socket and then relayed onto the **backend** socket which
 forwards the messages onto the subscribers.
 
-## Security
+### Security
 
 The security for the broker depends on whether the broker is using TCP or IPC
 for its respective sockets.
@@ -88,21 +84,21 @@ for its respective sockets.
 
 The following sections cover the security for the TCP and IPC modes.
 
-### IPC
+#### IPC
 
 When the broker is using an IPC socket (for either the **frontend** or **backend**
 sockets), the ability to send/receive messages shall be handled by Linux file
 permissions. There is no encryption which shall occur for the messages sent
 over IPC sockets.
 
-### TCP
+#### TCP
 
 For TCP connections, ZeroMQ offers mechanisms for both encryption and authentication.
-This is accomplished via elliptical curve keys generated when EII is provisioned.
+This is accomplished via elliptical curve keys generated when OEI is provisioned.
 These keys provide the encryption and authentication via the ZAP protocol and a
 list of allowed clients authentication is handled.
 
-The encryption and authentication is all handled under the hood by the EII
+The encryption and authentication is all handled under the hood by the OEI
 Message Bus for publishers and subscribers which are connecting to the broker.
 Via the configuration of the broker's messaging interfaces the broker has the
 required keys for decrypting messages and for determining whether or not a
@@ -120,31 +116,31 @@ the data coming through that broker instance is available to that subscriber to
 receive. Essentially what this means, is that the broker does not do authentication
 on a per topic/stream basis, only on a connection basis.
 
-## Performance Implications
+### Performance Implications
 
 When using the ZeroMQ Broker it is important to understand the implications
-on the performance of the networking in the EII platform.
+on the performance of the networking in the OEI platform.
 
 By using the broker, an extra network hop is incurred for all messages sent
-over the EII Message Bus ZeroMQ protocol plugin. This will increase the latency
+over the Message Bus ZeroMQ protocol plugin. This will increase the latency
 for the messages sent from the publishers connecting to the broker to the
 subscribers connecting to the broker.
 
 **IMPORTANT NOTE:**
 
-Having the broker running in an EII deployment does not make every message
+Having the broker running in an OEI deployment does not make every message
 from publishers go through the broker. Each publisher must be configured to
 connect to the broker. Publishers which are not configured to connect to the
 broker will still bind to their respective IPC socket or TCP (host, port)
 combination.
 
-## Configuration
+### Configuration
 
 > **NOTE:** The JSON schema for the configuration properties of the ZeroMQ
 > Broker can be found in the, "schema.json", file.
 
 Configuration of the ZeroMQ Broker is predominantly accomplished from the
-EII Configuration Manager APIs. However, it can also be configured via JSON
+OEI Configuration Manager APIs. However, it can also be configured via JSON
 files, as described in the Usage section below. The configuration via JSON
 files is only for development/debugging purposes. This section will focus on
 the preduction configuration of the broker.
@@ -170,12 +166,12 @@ file.
 **IMPORTANT NOTE:**
 There are some other configuration properties in the `environment` section of
 the, "docker-compose.yml", file. These are provided to the service from the,
-"build/.env", file. See the EII User Guide for more details.
+"build/.env", file. See the OEI User Guide for more details.
 
 The following two sections cover that various configuration properties the
 broker supports for interfaces and application configuration.
 
-### Application/Service Configuration
+#### Application/Service Configuration
 
 The broker supports two configuration parameters; one for the Linux scheduler
 policy and the other for the scheduler priority. These two properties are
@@ -219,7 +215,7 @@ The configuration above sets the Linux scheduler policy to `SCHED_FIFO` and its
 priority to `42`. As stated before, this can also be left entirely empty and the
 broker thread will default to the Linux default thread scheduling policy/priority.
 
-### Interface Configuration
+#### Interface Configuration
 
 The configuration of the networking interfaces for the ZeroMQ Broker is
 divided into two sections, "Subscribers", and, "Publishers". The, "Subscribers",
@@ -322,11 +318,11 @@ above:
 2. When using IPC sockets, the name of the, "SocketFile", must also be specified
     for all subscribers or publishers which will be connecting to that socket.
 
-## Docker
+### Docker
 
-The ZeroMQ Broker is integrated into the EII docker-compose ecosystem. To
+The ZeroMQ Broker is integrated into the OEI docker-compose ecosystem. To
 build and use the Docker container, follow the defined building / provisioning
-instructions for EII.
+instructions for OEI.
 
 If you are using a YAML file with the `builder.py` script, then make sure
 to add `ZmqBroker` under the `AppName` section of the YAML file. This will
@@ -334,15 +330,15 @@ include the broker into the resulting docker-compose.yml file and it will
 include the broker's configuration into the `eii_config.json` which shall
 be used when provisioning.
 
-## Connecting EII Services to the ZeroMQ Broker
+### Connecting OEI Services to the ZeroMQ Broker
 
-In order to connect EII Services, such as the VideoIngestion or VideoAnalytics
+In order to connect OEI Services, such as the VideoIngestion or VideoAnalytics
 services, user must edit their interfaces configuration to tell them the
 broker instance to connect to. Namely, you need to add two keys to the,
 "Publishers", configuration to have two additional keys:
 
 1. `BrokerAppName` - This specifies the AppName of the targeted broker instance
-2. `brokered` - This tells the EII Message Bus that the given publisher instance
+2. `brokered` - This tells the Message Bus that the given publisher instance
     is brokered
 
 As an example, below is the changes in the interfaces configuration for enabling
@@ -396,7 +392,7 @@ changing the endpoint to point to ZmqBroker along with PublisherAppName.
     }
 ```
 
-## Bare Metal
+### Bare Metal
 
 **IMPORTANT NOTE:**
 
@@ -404,7 +400,7 @@ Running the broker using bare-metal is not recommended for production environmen
 This way of running the broker is meant purely for development and debugging
 purposes.
 
-### Compilation
+#### Compilation
 
 The ZeroMQ Broker is written in C++ and as such utilizes the CMake build
 system for building the binary for the broker.
@@ -413,10 +409,10 @@ The ZeroMQ Broker has the following dependencies:
 
 - CMake 3.15+
 - IntelSafeString
-- EIIUtils
+- OEI Utils
 - libzmq
-- EIIConfigMgr
-- EIIMessageBus (only required for unit tests)
+- OEI ConfigMgr
+- MessageBus (only required for unit tests)
 
 Prior to building the ZeroMQ Broker, you must install these libraries on
 the target system. This can be done using the, "common/eii_libs_installer.sh"
@@ -445,21 +441,21 @@ $ cmake -DCMAKE_BUILD_TYPE=Debug -DWITH_TESTS=ON ..
 $ make
 ```
 
-### Usage
+#### Usage
 
 After building the ZeroMQ Broker you will have a binary named, "zmq-broker".
 Use this binary to run the ZeroMQ Broker.
 
-The ZeroMQ Broker can be configured from the EII Configuration Manager as
+The ZeroMQ Broker can be configured from the OEI Configuration Manager as
 well as from environmental variables and JSON configuration files.
 
-To use the configuration obtained via the EII Configuration Manager, simply
+To use the configuration obtained via the OEI Configuration Manager, simply
 start the binary with no parameters; however, make sure to set the `AppName`
 and `DEV_MODE` environmental variables. As mentioned at the beginning of the,
 "Bare Metal", section, this way of running the broker should only be done in
 development environments. As such, it is assumed that the `DEV_MODE` environmental
 variable will be set to `true` and no security shall be used with the Configuration
-Manager or over EII Message Bus ZeroMQ TCP connections. Additionall, for running
+Manager or over Message Bus ZeroMQ TCP connections. Additionall, for running
 in this way, the, "ia_etcd", container must be running.
 
 ```sh
@@ -494,7 +490,7 @@ the second will be for the **backend** configuration.
 > for the socket which subscribers shall connect to.
 
 The contents of the JSON is analygous to the JSON configuration files used in
-the EII Message Bus (see the IEdgeInsights/common/libs/EIIMessageBus/README.md
+the Message Bus (see the IEdgeInsights/common/libs/EIIMessageBus/README.md
 for more information). The contents of the JSON files depends on whether if
 the given socket is supposed to use TCP or IPC.
 
@@ -521,7 +517,7 @@ respectively as follows:
 
 > **NOTE:* This example configuration is stored in, "examples/ipc_frontend_example.json",
 > and can be used with the, "examples/configs/ipc_publisher_brokered.json",
-> EII Message Bus configuration file.
+> Message Bus configuration file.
 
 The table below desribes the purpose of each key in the JSON configuration file.
 
@@ -535,7 +531,7 @@ The table below desribes the purpose of each key in the JSON configuration file.
 For the `socket_file` key, when connecting a publisher, the publisher's
 configuration must also use this same `socket_file` key in the configuration
 for it. Otherwise, it will fail to connect because it will attempt to
-bind/connect to its topic name (see the EII Message Bus's documentation for
+bind/connect to its topic name (see the Message Bus's documentation for
 more details).
 
 **Backend:**
@@ -558,7 +554,7 @@ more details).
 
 > **NOTE:* This example configuration is stored in, "examples/ipc_backend_example.json",
 > and can be used with the, "examples/configs/ipc_subscriber_brokered.json",
-> EII Message Bus configuration file.
+> Message Bus configuration file.
 
 The configuration for the backend socket is the exact same as for the frontend.
 
@@ -592,7 +588,7 @@ respectively as follows:
 
 > **NOTE:** This example configuration is stored in, "examples/tcp_frontend_example.json",
 > and can be used with the, "examples/configs/tcp_publisher_brokered_with_security.json",
-> EII Message Bus configuration file.
+> Message Bus configuration file.
 
 The table below desribes the purpose of each key in the JSON configuration file.
 
@@ -608,8 +604,8 @@ The table below desribes the purpose of each key in the JSON configuration file.
 **IMPORTANT NOTE**
 
 When using JSON files for the configuration of the ZeroMQ Broker, the JSON
-file is the configuration used by the EII Message Bus, rather than the normal
-EII interface configurations. This is why the JSON configuration differs
+file is the configuration used by the Message Bus, rather than the normal
+OEI interface configurations. This is why the JSON configuration differs
 from the configuration given via the `eii_config.json`. The JSON shown above
 for the frontend, and the following backend configuration, represent how the
 configuration manager alters that configuration to be in these forms.
@@ -641,13 +637,12 @@ configuration manager alters that configuration to be in these forms.
 
 > **NOTE:* This example configuration is stored in, "examples/tcp_backend_example.json",
 > and can be used with the, "examples/configs/tcp_subscriber_with_security.json",
-> EII Message Bus configuration file.
+> Message Bus configuration file.
 
 All of the keys above have the same purpose and meaning as for the frontend
 configuration. Except, there is one key difference; instead of the empty string
 key, the backend configuration has the `zmq_tcp_publish` key. This is because
-the broker adopts the same configuration definitions as the EII Message Bus
-ZeroMQ protocol plugin. The ZeroMQ protocol plugin uses the `zmq_tcp_publish`
+the broker adopts the same configuration definitions as the Message Bus ZeroMQ protocol plugin. The ZeroMQ protocol plugin uses the `zmq_tcp_publish`
 key for setting the TCP (host, port) combinations for all publishers under a
 single message bus context. The broker uses the same configuration to keep it
 consistent between the two entities.
@@ -668,7 +663,7 @@ $ ./zmq-broker examples/tcp_frontend_example.json examples/tcp_backend_example.j
 > user wishes. For more examples of configurations, see the JSON files in the,
 > "tests/configs/", directory.
 
-### Running Unit Tests
+#### Running Unit Tests
 
 If the ZeroMQ Broker was built with the `-DWITH_TESTS=ON` flag set for the
 CMake command, then do the following to run the unit tests:
