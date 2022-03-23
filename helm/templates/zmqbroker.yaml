@@ -58,8 +58,6 @@ spec:
       - name: ia-zmqbroker
         image: {{ .Values.DOCKER_REGISTRY }}openedgeinsights/ia_zmq_broker:{{ .Values.EII_VERSION }}
         imagePullPolicy: {{ .Values.imagePullPolicy }}
-        securityContext:
-          privileged: true
         volumeMounts:
         {{- if eq .Values.config.zmqbroker.IPC true}}
         - name: {{ .Values.volumes.eii_socket.name }}
