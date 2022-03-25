@@ -159,7 +159,7 @@ class BrokerTests : public ::testing::Test {
     void run_test(
             const char* fe_conf_path, const char* be_conf_path,
             const char* pub_conf_path, const char* sub_conf_path,
-            int sched_policy=-1, int sched_priority=-1) {
+            int sched_policy = -1, int sched_priority = -1) {
         LOG_DEBUG("RUNNING TEST: %s",
                 ::testing::UnitTest::GetInstance()
                     ->current_test_info()
