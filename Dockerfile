@@ -81,7 +81,6 @@ ARG EII_USER_NAME
 RUN groupadd $EII_USER_NAME -g $EII_UID && \
     useradd -r -u $EII_UID -g $EII_USER_NAME $EII_USER_NAME
 RUN rm -rf /var/lib/apt/lists/*
-
 ARG ARTIFACTS
 WORKDIR /app
 ARG CMAKE_INSTALL_PREFIX
